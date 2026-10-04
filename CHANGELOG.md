@@ -1,9 +1,16 @@
-# CRACKWATCH Changelog
+# RoadGuard AI changelog
 
-> All changes to this project are documented here.
-> **Checkpoint: v1.5.3** — Revert to this tag if anything breaks: `git checkout v1.5.3`
+> RoadGuard AI is the renamed and rebuilt CrackWatch. Entries below v4.0.0 are the original hackathon history.
 
 ---
+
+## v4.0.0 — RoadGuard AI
+- Renamed CrackWatch to RoadGuard AI across the apps, API, WhatsApp bot and docs.
+- New detector: YOLO26s fine-tuned on RDD2022 (India, Japan, Czech, United States, China motorbike), evaluated against the old YOLOv8s on a held-out split; ONNX export for CPU-only machines; model card served at `GET /model`.
+- Backend split into modules and routers; RDD class mapping fixed (potholes were priced as longitudinal cracks and every class got the same severity weight); colour-threshold "leak/corrosion/pipe" detectors removed; crack length from the segmentation model; severity by defect type, extent, road class, confidence and density; DBSCAN duplicate merging into hazards; ward and authority routing; grounded complaint letters; seed data from RDD2022 India test photos at real Mumbai roads; 56 tests.
+- New design system (Kerb & Asphalt) shared by both apps; public landing page with the Inspector's Mark; inspector console rebuilt (Today, Scan, Hazards, Accountability, Model card, Settings); citizen app rebuilt (three-step report, map, my reports, rewards with a real-photo quiz, public ledger) as an installable PWA.
+- `RoadGuard.bat` launches everything in one click; both apps proxy `/api`, so certificates and `.env` files are optional.
+- Lint, tests and builds green in all three packages; CARTO tiles (now key-gated) replaced by OpenStreetMap.
 
 ## v3.6.3 — Comprehensive README for GitHub
 - Replaced Vite template README with a complete project documentation

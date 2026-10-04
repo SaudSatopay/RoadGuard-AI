@@ -1,635 +1,144 @@
-<div align="center">
+# RoadGuard AI
 
-# 🛣️ CRACK**WATCH**
+**Every pothole, on the record.** RoadGuard AI turns a citizen's road photo into a verified, prioritised, evidence-backed repair order that a municipal inspector can act on, and that the public can watch until the road is fixed.
 
-### *AI-Powered Smart Infrastructure Command Center*
+![RoadGuard AI landing page: a real Indian road photo with RoadGuard's detections sprayed on as inspector paint marks](assets/readme/landing.png)
 
-**Detecting damage before it becomes disaster.**
-
-![Version](https://img.shields.io/badge/version-3.6.2-4EDEA3?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-5DE6FF?style=for-the-badge)
-![Python](https://img.shields.io/badge/python-3.12%2B-FFD76B?style=for-the-badge&logo=python&logoColor=white)
-![React](https://img.shields.io/badge/react-19-A78BFA?style=for-the-badge&logo=react&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-4EDEA3?style=for-the-badge&logo=fastapi&logoColor=white)
-
-![Hackathon](https://img.shields.io/badge/🏆_NIRMAN-2026-FFA94D?style=flat-square)
-![Problem](https://img.shields.io/badge/Problem_Statement-%234-FF6B6B?style=flat-square)
-![University](https://img.shields.io/badge/Amity_University-Mumbai-A78BFA?style=flat-square)
+<sub>Major Project · Department of Artificial Intelligence &amp; Data Science, New Horizon Institute of Technology and Management, University of Mumbai · 2026–27. Grew out of **CrackWatch**, built solo by Saud Satopay at the NIRMAN 2026 hackathon.</sub>
 
 ---
 
-*Built in 48 hours. Deployable to 1 billion people.*
+## Run it (Windows, one click)
 
-</div>
+1. Install **Node.js 20+** and **Python 3.10+** (tick "Add to PATH"). An NVIDIA GPU is used if present; otherwise everything runs on the CPU.
+2. Double-click **`RoadGuard.bat`**.
 
----
+The first run creates `backend\.venv`, installs PyTorch (CUDA 12.8 build when an NVIDIA GPU is found) and the npm packages, then starts three windows and opens the browser. Later runs start in seconds.
 
-## 🎯 The 30-Second Pitch
+| What | Where | Sign in |
+|---|---|---|
+| Landing page | http://localhost:5173 | — |
+| Inspector console | http://localhost:5173/console | `admin` / `admin123` |
+| Citizen app | http://localhost:5175 (or `http://<your-PC-IP>:5175` on a phone on the same Wi-Fi) | any name, or `saud` / `123` |
+| API docs | http://127.0.0.1:8000/docs | — |
 
-> Last year in Maharashtra alone, **3,275 people died** because of potholes on Indian roads.
-> **73% of reported potholes are never fixed.** ₹33,000 crore is spent annually on road repairs, but manual inspection is slow, expensive, and dangerous.
->
-> **CRACKWATCH** doesn't just detect damage — it **predicts when it will fail, estimates the repair cost, submits the report to authorities, and publicly ranks every contractor by negligence**.
->
-> Citizens report via the PWA — or WhatsApp — in under 3 seconds.
-> Governments see the report on an inspector's map with AI-analyzed severity, cost, and a priority queue.
-> The public sees every unfixed pothole and which contractor is responsible.
->
-> **Detecting a pothole doesn't fix it. A watched government does.**
-
----
-
-## 🏆 What Makes This Groundbreaking
-
-<table>
-<tr>
-<td width="33%" align="center">
-
-### 💬 WhatsApp Bot
-**Zero app install needed.**
-500M Indian WhatsApp users can report damage *right now*, no learning curve, no app store, no login.
-
-</td>
-<td width="33%" align="center">
-
-### 🤖 3-Model AI Pipeline
-**Fully offline, 757ms per image.**
-YOLOv8s-RDD + CrackSeg + OpenCV running in parallel. Zero cloud bills. Works when internet drops.
-
-</td>
-<td width="33%" align="center">
-
-### 🔥 Wall of Shame
-**Contractor accountability, publicly ranked.**
-Every unfixed report compounds their negligence score. Politicians don't want to be at the top.
-
-</td>
-</tr>
-<tr>
-<td width="33%" align="center">
-
-### 🔮 Predictive Engine
-**"This road fails in 18 days."**
-Monsoon-adjusted damage progression model. Shows cost delta if repair delayed.
-
-</td>
-<td width="33%" align="center">
-
-### 🛡️ 5-Layer Fraud Detection
-**No selfies reach the inspector.**
-Image authenticity + GPS validation + content relevance + duplicate detection + rate limiting.
-
-</td>
-<td width="33%" align="center">
-
-### 🎮 Gamification Engine
-**Citizens compete to fix their city.**
-XP, Civic Coins, 13 badges, daily streaks, AI Challenge game, Pothole Hunter leaderboard.
-
-</td>
-</tr>
-</table>
-
----
-
-## 🏗️ Architecture
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                          CRACKWATCH ECOSYSTEM                           │
-│                                                                          │
-│   ┌──────────────┐     ┌──────────────┐     ┌────────────────┐          │
-│   │  Govt App    │     │  Citizen PWA │     │  WhatsApp Bot  │          │
-│   │  React+Vite  │     │  React+Vite  │     │  (Twilio)      │          │
-│   │  Port 5173   │     │  Port 5175   │     │  +14155238886  │          │
-│   │  HTTPS       │     │  Phone-frame │     │  join code     │          │
-│   └──────┬───────┘     └──────┬───────┘     └────────┬───────┘          │
-│          │                    │                      │                   │
-│          └──────────┬─────────┴──────────┬───────────┘                   │
-│                     ▼                    ▼                               │
-│            ┌───────────────┐    ┌───────────────┐                        │
-│            │ HTTPS :8000   │    │ HTTP :8001    │                        │
-│            │ Frontend API  │    │ ngrok tunnel  │                        │
-│            └───────┬───────┘    └───────┬───────┘                        │
-│                    │                    │                                │
-│                    └──────────┬─────────┘                                │
-│                               │                                          │
-│                       ┌───────▼────────┐                                 │
-│                       │   FastAPI      │                                 │
-│                       │   (single app) │                                 │
-│                       └───────┬────────┘                                 │
-│                               │                                          │
-│  ┌──────┬──────┬──────┬──────┼──────┬──────┬──────┬──────┐              │
-│  ▼      ▼      ▼      ▼      ▼      ▼      ▼      ▼      ▼              │
-│ YOLO  Crack  OpenCV Severity Cost  Fraud Predict Gamify Analytics       │
-│ RDD   Seg    CV     Engine   INR   5-lyr X-days  XP/Lvl Wall of Shame   │
-│                                                                          │
-│                       ┌──────────────┐                                   │
-│                       │ shared_store │ ← cross-process state sync        │
-│                       │    .json     │                                   │
-│                       └──────────────┘                                   │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-**Dual-backend design:**
-- **Port 8000 HTTPS** — serves frontends (mobile camera/GPS requires secure context)
-- **Port 8001 HTTP** — receives Twilio WhatsApp webhooks via ngrok
-- **Shared state** via `shared_store.json` (merge-on-read/write)
-
----
-
-## ✨ Complete Feature List
-
-### 🏛️ Government Command Center (Web Dashboard)
-
-| Feature | What It Does |
-|---------|--------------|
-| 🤖 **AI Damage Detection** | Upload an image → 3-model pipeline detects 10+ damage types in 757ms |
-| 📏 **Severity Scoring** | 0-100 composite score based on damage area × confidence × type weight |
-| 💰 **Cost Estimation** | INR estimates calibrated to CPWD 2023 Mumbai rates + repair method + crew size |
-| 📋 **Repair Plan Generator** | Priority-ranked daily action plan for inspectors |
-| 🗺️ **Reports Map** | Interactive Leaflet map with admin controls (mark fixed/in-progress) |
-| 🎥 **Video + Live Camera** | Frame-by-frame video analysis + live camera detection |
-| 🔮 **Predictive Analytics** | "This road fails in X days" with monsoon acceleration (2.5× Jun-Sep) |
-| 🔥 **Wall of Shame** | 6+ contractors ranked by negligence score |
-| ⚠️ **Priority Queue** | Top 5 urgent repairs with total cost projection |
-| 🏥 **City Health Score** | 0-100 rating per city with trend indicators |
-| 🔄 **Before/After** | Upload 2 images → AI computes improvement % |
-| 📊 **Smart Heatmap** | Geo-intensity visualization of damage severity |
-| 🛡️ **Fraud Controls** | Toggle 5-layer fraud detection on/off |
-
-### 📱 Public Citizen App (PWA)
-
-| Feature | What It Does |
-|---------|--------------|
-| 🗺️ **Live Pothole Map** | Real-time pins color-coded by status (unfixed/in-progress/fixed) |
-| 📸 **Photo + GPS Reporting** | Tap → photo → AI classifies → auto-GPS → submit in 3 taps |
-| ⬆️ **Upvote System** | Citizens vote which potholes matter most → priority re-rank |
-| 🧭 **Pothole-Aware Navigation** | OSRM routing with safety scores, hazard markers, "Avoid Potholes" toggle |
-| 🏆 **Pothole Hunter Leaderboard** | Top citizens by XP — gold/silver/bronze podium |
-| 🎖️ **13 Achievement Badges** | First Report → Road Warrior → City Saver → AI Master |
-| 💰 **Civic Coins** | Virtual currency earned from reports + verifications |
-| 🔥 **Daily/Weekly Streaks** | Bonus XP multipliers for consistent reporting |
-| 🧠 **AI Challenge Game** | Guess damage type from scenario description (+50 XP correct) |
-| 📊 **Transparency Dashboard** | Government performance score + fix rate + cost total |
-| 💬 **WhatsApp Integration** | Report directly from WhatsApp, no PWA needed |
-| 📱 **Phone-Frame Desktop** | Mobile-first design looks like a phone on desktop |
-
-### 💬 WhatsApp Bot (Twilio)
-
-| Feature | What It Does |
-|---------|--------------|
-| 🚀 **Zero-Install Reporting** | Send photo → get AI analysis in 3 seconds |
-| 🔄 **Two-Step Conversation** | Stateful flow: photo first, then location share |
-| 📍 **Native Location Share** | Uses WhatsApp's native location picker for accurate GPS |
-| 🤖 **AI Reply** | Damage type + severity + cost + gamification rewards |
-| 🛡️ **No-Damage Guard** | Clean photos rejected with tips (not auto-approved) |
-| ⏱️ **15-min Session Expiry** | Prevents stale photo + fresh location mismatch |
-| 🎮 **Gamification in Chat** | XP, coins, new badge notifications in reply message |
-
----
-
-## 🧰 Tech Stack
-
-<table>
-<tr>
-<td valign="top" width="50%">
-
-### 🎯 AI / ML
-- **YOLOv8s-RDD** — Road damage detection (72.6% mAP)
-- **YOLOv8s-CrackSeg** — Building/wall crack segmentation (85%+)
-- **OpenCV** — Supplementary CV (leaks, rust, spalling, moiré)
-- **Ultralytics** — Inference framework
-- **RDD2022 Dataset** — 4.8K Indian road images
-
-### ⚙️ Backend
-- **Python 3.12+**
-- **FastAPI 0.115** — Async ASGI framework
-- **Uvicorn 0.30** — ASGI server with HTTPS
-- **Pillow** — Image decoding + EXIF extraction
-- **httpx** — Async HTTP client
-- **python-dotenv** — Credentials management
-- **Twilio SDK 9.3** — WhatsApp integration
-- **JWT** — Stateless auth (PyJWT)
-
-</td>
-<td valign="top" width="50%">
-
-### 🎨 Frontend (Govt Dashboard)
-- **React 19** + **Vite 8**
-- **Tailwind CSS v4** (via `@tailwindcss/vite`)
-- **shadcn/ui** component primitives
-- **Framer Motion** — Animations
-- **Recharts** — Analytics charts
-- **Leaflet** + **react-leaflet-cluster** — Maps
-- **Lucide React** — Icons
-- **Space Grotesk + Geist** — Typography
-
-### 📱 Frontend (Public PWA)
-- **React 19** + **Vite 8**
-- **Leaflet Routing Machine** (OSRM) — Pothole-aware nav
-- **Framer Motion** — Phone-frame animations
-- Progressive Web App (installable)
-
-### 🔌 Integrations
-- **Twilio WhatsApp Sandbox** — Messaging platform
-- **ngrok** — HTTPS tunnel for webhooks
-- **OpenStreetMap / Nominatim** — Geocoding (free)
-- **OSRM** — Free routing engine
-
-</td>
-</tr>
-</table>
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Python 3.12+**
-- **Node.js 20+**
-- **Git**
-- (Optional) **ngrok** for WhatsApp webhook
-- (Optional) **Twilio account** (free trial) for WhatsApp
-
-### 1. Clone the Repo
-
-```bash
-git clone https://github.com/SaudSatopay/CrackWatch-NirmanHackathon.git
-cd CrackWatch-NirmanHackathon
-```
-
-### 2. Install Backend Dependencies
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 3. Install Frontend Dependencies
-
-```bash
-# Govt Dashboard
-cd ..
-npm install
-
-# Public PWA
-cd public-app
-npm install
-cd ..
-```
-
-### 4. (Optional) Generate SSL Certs for Mobile Testing
-
-```bash
-# Using mkcert (recommended)
-mkcert -install
-mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 <your-lan-ip>
-
-# Copy to backend too (for the API)
-cp certs/cert.pem backend/cert.pem
-cp certs/key.pem backend/key.pem
-```
-
-### 5. Configure Environment
-
-```bash
-# crackwatch/.env
-VITE_API_URL=https://<your-lan-ip>:8000
-
-# public-app/.env
-VITE_API_URL=https://<your-lan-ip>:8000
-
-# backend/.env  (for WhatsApp)
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxx
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-```
-
-### 6. Run Everything
-
-```bash
-# Terminal 1 — Backend (HTTPS, for frontend)
-cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 \
-  --ssl-keyfile key.pem --ssl-certfile cert.pem
-
-# Terminal 2 — Backend (HTTP, for WhatsApp via ngrok)
-cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8001
-
-# Terminal 3 — Govt Dashboard
-npm run dev                # → https://<your-ip>:5173
-
-# Terminal 4 — Public PWA
-cd public-app
-npm run dev                # → https://<your-ip>:5175
-
-# Terminal 5 — ngrok (for WhatsApp)
-ngrok http http://localhost:8001
-# Copy the https://*.ngrok-free.app URL to Twilio Sandbox webhook
-```
-
-### 7. (Optional) Seed Demo Data
-
-```bash
-# 20 reports from real images across Mumbai + Navi Mumbai
-cd backend
-PYTHONIOENCODING=utf-8 python seed_from_images.py
-
-# 10 gamification demo users
-curl -k -X POST https://localhost:8000/gamification/seed-demo
-```
-
----
-
-## 🔐 Demo Credentials
-
-| Role | Username | Password | What You Get |
-|------|----------|----------|--------------|
-| 🏛️ Government Inspector | `admin` | `admin123` | Full govt dashboard + admin controls |
-| 🏛️ Municipal Officer | `inspector` | `inspect123` | Same as admin, different name |
-| 🏛️ NHAI Engineer | `engineer` | `eng123` | Same as admin, different name |
-| 📱 Demo Citizen | `saud` | `123` | Pre-seeded profile: Lv.6, 3200 XP, 10 badges, 21-day streak, #1 leaderboard |
-| 📱 Anonymous Citizen | *any name* | *blank* | Fresh account, starts at 0 XP |
-
----
-
-## 📖 API Reference
-
-### Authentication
-```
-POST /auth/login              Government or citizen login → JWT
-POST /auth/register           Anonymous citizen registration
-GET  /auth/me                 Verify token
-```
-
-### Detection
-```
-POST /detect                  Image upload → full AI pipeline
-POST /detect/video            Video frame-by-frame analysis
-POST /detect/frame            Single base64 frame (live camera)
-GET  /sectors                 Available detection sectors
-```
-
-### Citizen Reports
-```
-POST /public/report                Submit citizen report (photo + GPS)
-GET  /public/reports/map           Lightweight map pins
-GET  /public/reports/map/detail    Full reports with images
-GET  /public/reports/{id}          Single report
-POST /public/reports/{id}/upvote   Upvote a report
-```
-
-### Admin
-```
-GET  /admin/reports/map            Govt reports with admin fields
-PATCH /admin/reports/{id}/status   Change status (submitted/in_progress/fixed)
-GET  /admin/settings               Read system settings
-PATCH /admin/settings              Toggle fraud detection
-POST /admin/reports/seed-demo      Seed demo reports
-```
-
-### Advanced Analytics
-```
-GET /analytics/wall-of-shame       Contractor leaderboard
-GET /analytics/heatmap             Geo-intensity points
-GET /analytics/priority-queue      Top 5 urgent repairs
-GET /analytics/city-health         Per-city health scores
-GET /analytics/forecast            Predictive maintenance forecast
-POST /analytics/before-after       Compare before/after images
-```
-
-### Gamification
-```
-GET  /gamification/leaderboard           Top 20 XP holders
-GET  /gamification/profile/{user_id}     Full user profile
-GET  /gamification/challenges/{user_id}  Daily quests
-POST /gamification/verify                Community vote on report
-GET  /gamification/ai-challenge          Random scenario
-POST /gamification/ai-challenge/answer   Submit guess
-GET  /gamification/achievements          All badges
-POST /gamification/seed-demo             Seed 10 demo users
-```
-
-### WhatsApp
-```
-POST /whatsapp/webhook          Twilio incoming-message handler
-```
-
-### Repair Plan
-```
-POST /repair-plan/generate      Priority-ranked daily plan
-GET  /repair-plan/explain/{id}  Explainable AI breakdown
-```
-
----
-
-## 💬 WhatsApp Bot Setup
-
-### 1. Twilio Sandbox (Free)
-
-1. Sign up at https://www.twilio.com/try-twilio (free, no credit card)
-2. Navigate to **Messaging → Try it out → Send a WhatsApp message**
-3. Note your **sandbox number** (`+1 415 523 8886`) and **join code**
-
-### 2. Configure Webhook
-
-1. Run `ngrok http http://localhost:8001` — copy the forwarding URL
-2. In Twilio Sandbox → **Sandbox settings**:
-   - **When a message comes in:** `https://your-ngrok.ngrok-free.app/whatsapp/webhook`
-   - **Method:** HTTP POST
-   - Save
-
-### 3. Opt In Any Phone
-
-From any WhatsApp:
-```
-join your-sandbox-code
-```
-to `+1 415 523 8886`
-
-### 4. Report Damage via WhatsApp
-
-1. Send a photo of damage
-2. Bot replies: *"📸 Got your photo! Now tap 📎 → Location → Send current location"*
-3. Share your location via WhatsApp's attachment menu
-4. Bot replies with AI analysis, cost, repair method, XP earned
-
----
-
-## 🎯 Key Design Decisions
+`RoadGuard.bat stop` closes everything; `RoadGuard.bat setup` only installs. Both frontends proxy `/api` to the backend, so no certificates, CORS settings or `.env` files are needed. For the phone camera and GPS over Wi-Fi, browsers require HTTPS: create `certs/cert.pem` and `certs/key.pem` with [mkcert](https://github.com/FiloSottile/mkcert) and both apps switch to HTTPS automatically.
 
 <details>
-<summary><b>Why local YOLO, not cloud inference?</b></summary>
+<summary>macOS / Linux, or running each part by hand</summary>
 
-Zero cloud bills. Sub-second latency. Works offline. Critical for rural India where connectivity is inconsistent. Municipalities can deploy on a ₹30K laptop with no recurring costs.
-</details>
-
-<details>
-<summary><b>Why two uvicorn processes (HTTPS + HTTP)?</b></summary>
-
-Frontend requires HTTPS for mobile camera/GPS (browser security). ngrok free tier can't verify self-signed upstream TLS, so Twilio webhooks need plain HTTP. Solved with a shared `shared_store.json` for cross-process state.
-</details>
-
-<details>
-<summary><b>Why WhatsApp instead of another chat platform?</b></summary>
-
-500M+ monthly active users in India. Zero install friction. Works on feature phones via WhatsApp Lite. Citizens already know how to send photos. No "why should I install your app?" barrier.
-</details>
-
-<details>
-<summary><b>Why YOLOv8 and not newer models like YOLOv11?</b></summary>
-
-YOLOv8s-RDD has pre-trained weights on RDD2022 (4.8K Indian road images). A newer architecture without domain-specific training scores ~14 percentage points lower on Indian damage. "Newer ≠ better" when domain data matters.
-</details>
-
-<details>
-<summary><b>Why in-memory state instead of PostgreSQL?</b></summary>
-
-Hackathon velocity. Every feature ships in 30 minutes because there's no migration overhead. `shared_store.json` adds persistence + cross-process sync. Production would use PostgreSQL + PostGIS for geo-queries.
-</details>
-
-<details>
-<summary><b>Why rule-based cost estimation, not ML?</b></summary>
-
-Explainability. Inspectors need to defend budget allocations. A rule-based engine calibrated to CPWD 2023 rates gives line-item accountability. ML would be a black box no government will approve.
+```bash
+python -m venv --system-site-packages backend/.venv
+backend/.venv/bin/pip install -r backend/requirements.txt
+backend/.venv/bin/python -m uvicorn main:app --app-dir backend --port 8000
+npm ci && npm run dev                       # landing + console on :5173
+cd public-app && npm ci && npm run dev      # citizen app on :5175
+```
 </details>
 
 ---
 
-## 📊 Performance Metrics
+## What it does
 
-| Metric | Value | Context |
-|--------|-------|---------|
-| YOLO inference time | **~500ms** | CPU only, no GPU |
-| Full pipeline latency | **~757ms** | YOLO + CrackSeg + OpenCV + annotation |
-| WhatsApp round-trip | **~3 seconds** | User's photo → bot reply |
-| Reports on map load | **~50ms** | 20 reports with base64 images |
-| Fraud check time | **~200ms** | Mostly Laplacian + FFT |
-| Memory footprint | **~1.2 GB** | Per uvicorn process (YOLO weights) |
-| Inference accuracy | **72.6% mAP** | YOLOv8s-RDD on RDD2022 test set |
+- **Detect.** A YOLO26s detector fine-tuned on RDD2022 finds potholes (D40) and longitudinal (D00), transverse (D10) and alligator (D20) cracks. A crack-segmentation model traces crack length and coverage where it can.
+- **Decide.** Reports within 25 m are merged into one hazard (DBSCAN on GPS). Severity combines defect type, damaged extent, road class, confidence and density; each hazard gets a rupee estimate, a monsoon-aware deterioration forecast, and a place in a worklist ranked by severity × days open × citizen votes.
+- **Deliver.** One click drafts a complaint letter to the responsible ward office with the photo, GPS, severity, cost and number of citizen reports, grounded in a small knowledge base of grievance routes (and polished by Claude when `ANTHROPIC_API_KEY` is set). Status moves Open → Acknowledged → Crew assigned → Fixed on a public ledger, and ward accountability is computed from that ledger.
 
----
+| Inspector console: today's worklist | Scan any photo: evidence sheet |
+|---|---|
+| ![Console Today view](assets/readme/console-today.png) | ![Scan result with evidence sheet](assets/readme/console-scan.png) |
 
-## 🎯 Roadmap
-
-### ✅ Shipped (v1.0.0 → v3.6.2)
-- Core AI pipeline (3 models)
-- Dual-platform (Govt + Citizen)
-- WhatsApp integration with stateful conversations
-- Gamification (13 badges, leaderboard, AI challenge)
-- 5-layer fraud detection
-- Predictive maintenance engine
-- Wall of Shame with 6 contractors
-- Pothole-aware navigation
-- Demo-ready seed data (20 reports across Mumbai + Navi Mumbai)
-- 15-slide presentation deck
-
-### 🚧 Post-Hackathon (Backlog)
-- PostgreSQL + PostGIS migration
-- Real WhatsApp Business API (no sandbox join code)
-- Mobile native apps (React Native)
-- Offline-first sync queue
-- Multi-language (Hindi, Marathi)
-- UPI-based citizen crowdfunding ("fund this fix")
-- WebSocket real-time map updates
-- AR live-scan camera overlay
-- Voice note transcription (Whisper)
-- Municipal ERP integration (SAP, custom CPGRAMS bridges)
+![Citizen app: report flow, result with marks, public ledger](assets/readme/citizen.png)
 
 ---
 
-## 🛡️ Security Notes
+## How it works
 
-### Hackathon-Safe Compromises
-- Passwords are plaintext in `auth.py` (would be bcrypt-hashed in prod)
-- JWT secret is hardcoded (would be env var + rotation)
-- CORS = `allow_origins=["*"]` (would be scoped to known frontends)
-- Rate limiting is in-memory (would need Redis for multi-worker)
+```mermaid
+flowchart LR
+  subgraph Clients
+    A[Citizen app<br/>React PWA :5175]
+    W[WhatsApp bot<br/>Twilio webhook]
+    C[Inspector console<br/>React :5173]
+  end
+  A -- photo + GPS --> API
+  W -- photo + location --> API
+  C -- scans, status, letters --> API
+  subgraph API[FastAPI backend :8000]
+    D[YOLO26s detector<br/>CUDA .pt or CPU ONNX]
+    S[Crack segmentation<br/>length + coverage]
+    V[Severity · cost · forecast]
+    H[DBSCAN hazards<br/>25 m]
+    L[Complaint letters<br/>retrieval + template / Claude]
+    G[Ledger · wards · SLA]
+  end
+  D --> S --> V --> H --> G
+  H --> L
+  G -- public ledger --> A
+  G -- worklist, map --> C
+```
 
-### Actually Production-Safe
-- ✅ XML escaping in TwiML replies
-- ✅ Fraud detection resilient to hostile users
-- ✅ Image authenticity resists screenshot attacks (moiré detection)
-- ✅ GPS bounds check rejects out-of-India coords
-- ✅ `.env`, `.pem`, and `shared_store.json` are gitignored
-- ✅ JWT tokens expire in 24h
-
----
-
-## 📚 Version History
-
-See [CHANGELOG.md](./CHANGELOG.md) — every release documented with bullet points.
-
-Highlights:
-- **v1.0.0** — Production release, dual platform
-- **v1.4.0** — 5-layer fraud detection
-- **v2.0.0** — Smart navigation with pothole avoidance
-- **v2.2.0** — Predictive maintenance engine
-- **v3.0.0** — Full gamification (12 features)
-- **v3.3.0** — `saud/123` demo account
-- **v3.4.0** — No-damage rejection
-- **v3.5.0** — WhatsApp bot
-- **v3.5.2** — Stateful WhatsApp two-step flow (photo + location)
-- **v3.6.0** — Presentation rebuild with groundbreaking features
-- **v3.6.1** — 20 AI-detected real-image reports across Mumbai
-- **v3.6.2** — Wall of Shame with 6 contractors
+The backend stores reports in a JSON ledger (`backend/data/`), photos in `backend/uploads/`, and seeds 24 reports from RDD2022 India test photos at real Mumbai and Navi Mumbai roads on first start (`POST /admin/reset-demo` restores them). API contract: [`backend/API.md`](backend/API.md).
 
 ---
 
-## 🏆 Hackathon Context
+## The model
 
-**Event:** NIRMAN 2026 — Amity University Mumbai
-**Dates:** April 15-17, 2026 (48 hours)
-**Problem Statement:** #4 — AI-based infrastructure damage detection
-**Team:** Solo — Saud Satopay
+| | **RoadGuard YOLO26s** | CrackWatch YOLOv8s (replaced) |
+|---|---|---|
+| Training data | RDD2022: India, Japan, Czech, United States, China (motorbike) | RDD2022: Japan, India |
+| mAP@0.5, held-out test (1,674 photos) | **MODEL_MAP50** | 0.635* |
+| mAP@0.5:0.95 | **MODEL_MAP5095** | 0.342* |
+| Czech / United States / China (photos neither model trained on) | **MODEL_FAIR** | 0.17 / 0.46 / 0.24 |
+| Latency per photo (RTX 5060 Ti) | MODEL_LAT ms | 10 ms |
 
-### The One Line That Wins
+\* The old model was trained on RDD2022 Japan and India photos drawn from the same pool as this test split, so its Japan and India scores are likely inflated by overlap. RoadGuard never saw a test photo. Full per-class and per-country numbers are on the console's **Model card** page and in `training/results/`.
 
-> **"Detecting a pothole doesn't fix it. A watched government does."**
+Reproduce from scratch (about 2.5 GB download and roughly 1.5 h of GPU time):
 
----
-
-## 👨‍💻 Author
-
-<div align="center">
-
-### **Saud Satopay**
-
-Student Developer · Amity University Mumbai
-
-[![GitHub](https://img.shields.io/badge/GitHub-SaudSatopay-4EDEA3?style=for-the-badge&logo=github)](https://github.com/SaudSatopay)
-
-</div>
+```bash
+python training/download_rdd2022.py   # range-downloads only 5 country zips from the 13 GB archive
+python training/prepare_rdd2022.py    # VOC -> YOLO, seeded 88/6/6 split per country
+python training/train_detector.py --model yolo26s.pt --lean --epochs 25
+python training/evaluate.py backend/model/best.pt:legacy training/runs/<run>/weights/best.pt:roadguard
+python training/export.py --run <run> # weights + ONNX + model card + landing numbers
+```
 
 ---
 
-## 📜 License
+## Design
 
-MIT — Feel free to fork, adapt, and deploy to your own municipality. Open-source infrastructure accountability should be a public good.
-
----
-
-## 🙏 Acknowledgments
-
-- **RDD2022 Dataset** — Pre-trained YOLO weights
-- **HuggingFace** — Model hosting
-- **Twilio** — WhatsApp Sandbox (free tier)
-- **OpenStreetMap + OSRM** — Free mapping infrastructure
-- **Ultralytics** — YOLOv8 inference framework
-- **Amity University Mumbai** — Hosting NIRMAN 2026
-- Every pothole that inspired this build. May you never trip another commuter.
+Kerb &amp; Asphalt: concrete-grey surfaces, asphalt ink, road-marking yellow used the way road signs use it, the black-and-yellow kerb stripe, kilometre stones for the pipeline, chainage for positions, and the inspector's spray-paint ring as the signature: real detections drawn onto real photos. Barlow Condensed (signage), Instrument Sans and JetBrains Mono, self-hosted. One token file (`shared/tokens.css`) drives both apps, with a designed Night shift theme for the console. Rationale and rules: [`DESIGN.md`](DESIGN.md).
 
 ---
 
-<div align="center">
+## Project layout
 
-**Built with ☕ and zero sleep during NIRMAN Hackathon 2026.**
+```
+RoadGuard.bat            one-click launcher (Windows)
+src/                     landing page (/) and inspector console (/console)
+public-app/              citizen app (PWA)
+shared/                  tokens, MarkedPhoto, map, API client, formatting
+backend/                 FastAPI app, routers, detector pipeline, seed, tests
+training/                RDD2022 download, prep, training, evaluation, export
+tools/                   showcase generator and the build-time hero poster
+```
 
-*If this helped your city, a ⭐ on GitHub means the world.*
+## Checks
 
-[⬆ back to top](#-crackwatch)
+```bash
+npm run lint && npm test && npm run build                      # landing + console
+cd public-app && npm run lint && npm test && npm run build     # citizen app
+cd backend && .venv/Scripts/python -m pytest -q                # 56 backend tests
+```
 
-</div>
+---
+
+## Credits
+
+- **Team:** Saud Satopay, Jayant Patil, Shravani Talashilkar · **Guide:** Ms. Sangita Nikumbh
+- **Data:** RDD2022, Arya et al., *RDD2022: A multi-national image dataset for automatic road damage detection*, CC BY 4.0 ([figshare](https://doi.org/10.6084/m9.figshare.21431547)). Sample photos in `public/showcase/` and `backend/seed/images/` come from its India test split.
+- **Models:** [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) (AGPL-3.0) fine-tuned for RoadGuard; YOLOv8s-seg crack segmentation.
+- **Maps:** © OpenStreetMap contributors. **Type:** Barlow, Instrument Sans, JetBrains Mono (OFL).
+
+RoadGuard's own code is MIT licensed. Ultralytics is AGPL-3.0; deploying the detector as a network service carries AGPL obligations.

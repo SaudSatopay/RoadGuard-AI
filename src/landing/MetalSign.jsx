@@ -8,7 +8,9 @@ const LiquidMetal = lazy(() => import("@paper-design/shaders-react").then((m) =>
 function webglAvailable() {
   try {
     const c = document.createElement("canvas");
-    return Boolean(c.getContext("webgl2") || c.getContext("webgl"));
+    const gl = c.getContext("webgl2") || c.getContext("webgl");
+    gl?.getExtension("WEBGL_lose_context")?.loseContext(); // release the probe context straight away
+    return Boolean(gl);
   } catch {
     return false;
   }
@@ -41,12 +43,17 @@ export default function MetalSign({ size = 320 }) {
   const ref = useRef(null);
   const reduce = useReducedMotionPreference();
   const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [canGl] = useState(() => typeof document !== "undefined" && webglAvailable());
 
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") return undefined;
-    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "120px" });
+    // Mount the shader the first time it comes near the viewport, then keep it: off-screen it only pauses.
+    const io = new IntersectionObserver(([entry]) => {
+      setVisible(entry.isIntersecting);
+      if (entry.isIntersecting) setMounted(true);
+    }, { rootMargin: "120px" });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -54,7 +61,7 @@ export default function MetalSign({ size = 320 }) {
   return (
     <div ref={ref} className="relative" style={{ width: size, height: size, maxWidth: "100%" }}>
       <Poster size={size} />
-      {visible && canGl && (
+      {mounted && canGl && (
         <Suspense fallback={null}>
           <LiquidMetal
             className="absolute inset-0"
@@ -71,7 +78,7 @@ export default function MetalSign({ size = 320 }) {
             distortion={0.08}
             contour={0.45}
             angle={70}
-            speed={reduce ? 0 : 0.55}
+            speed={reduce || !visible ? 0 : 0.55}
             scale={0.9}
             fit="contain"
             maxPixelCount={size * size * 2.25}
