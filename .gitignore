@@ -36,3 +36,6 @@ backend/shared_store.json
 
 # Local TLS certs (machine-specific, never commit)
 certs/
+
+# RoadGuard AI runtime state (store file; regenerates from backend/seed on first start)
+backend/data/

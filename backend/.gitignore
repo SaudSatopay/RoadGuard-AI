@@ -8,3 +8,5 @@ yolov8n.pt
 det*.json
 detect_result.json
 test_*.json
+.venv/
+data/
