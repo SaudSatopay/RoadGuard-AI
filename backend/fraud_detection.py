@@ -1,13 +1,13 @@
 """
-CRACKWATCH Fake Report Prevention System.
-Multi-layer fraud detection for citizen damage reports.
+RoadGuard AI report trust checks.
+Multi-layer checks that keep fake or irrelevant citizen reports off the ledger.
 
 Layers:
 1. Image authenticity — screen capture, AI-generated, stock photo detection
 2. GPS validation — spoofing detection, land vs water check
 3. Duplicate detection — same location radius matching
 4. Behavioral analysis — submission rate, pattern anomalies
-5. Content validation — irrelevant images, no-damage photos
+5. Content validation — irrelevant images, photos with no road defect
 """
 
 import math
@@ -15,7 +15,8 @@ import time
 import cv2
 import numpy as np
 from PIL import Image
-from datetime import datetime, timezone
+
+from classes import normalize
 
 # ── Rate limiting store ──
 submission_history: dict[str, list[float]] = {}  # token → list of timestamps
@@ -86,7 +87,6 @@ def check_image_authenticity(image: Image.Image) -> dict:
 
     # ── 5. Color channel analysis (AI-generated images often have unnatural color distributions) ──
     hsv = cv2.cvtColor(img_np, cv2.COLOR_RGB2HSV)
-    sat_mean = float(np.mean(hsv[:, :, 1]))
     sat_std = float(np.std(hsv[:, :, 1]))
     if sat_std < 15:
         flags.append({"type": "unnatural_color", "severity": "medium",
@@ -273,42 +273,31 @@ def check_submission_rate(user_token: str, max_per_hour: int = 10) -> dict:
 
 def check_detection_relevance(detections: list) -> dict:
     """
-    Check if AI actually found infrastructure damage in the image.
-    No detections = possibly irrelevant photo (selfie, random object, etc.)
+    Check that the detector actually found a road defect in the photo.
+    No detections usually means an irrelevant photo (selfie, random object, ...).
     """
     if not detections:
         return {
             "is_relevant": False,
             "trust_score": 30,
-            "message": "No infrastructure damage detected in this image. Are you sure this shows road/building damage?",
+            "message": "No road defect found in this photo. Take the photo of the pothole or crack itself.",
         }
 
-    # Check if detections are actually damage types (not random COCO objects)
-    damage_classes = {
-        "Longitudinal Crack", "Transverse Crack", "Alligator Crack", "Potholes",
-        "Building/Wall Crack", "Surface Spalling", "Water Stain / Leak",
-        "Corrosion / Rust", "Pipeline Break / Damage",
-        "crack", "building_crack", "spalling", "leak", "corrosion", "pipe_damage",
-        "D00", "D10", "D20", "D40",
-    }
-
-    relevant = [d for d in detections if d.get("class_name") in damage_classes or d.get("display_name") in damage_classes]
-
+    relevant = [d for d in detections if normalize(d.get("code") or d.get("class_name")) is not None]
     if not relevant:
         return {
             "is_relevant": False,
             "trust_score": 40,
-            "message": "Detected objects don't appear to be infrastructure damage.",
+            "message": "What was detected does not look like road damage.",
         }
 
     avg_conf = sum(d.get("confidence", 0) for d in relevant) / len(relevant)
-
     return {
         "is_relevant": True,
         "trust_score": min(100, int(50 + avg_conf * 50)),
-        "damage_types_found": len(set(d.get("display_name", d.get("class_name")) for d in relevant)),
+        "damage_types_found": len({normalize(d.get("code") or d.get("class_name"))["code"] for d in relevant}),
         "avg_confidence": round(avg_conf, 3),
-        "message": f"{len(relevant)} damage detection(s) confirmed",
+        "message": f"{len(relevant)} road defect detection(s) confirmed",
     }
 
 

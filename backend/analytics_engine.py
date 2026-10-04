@@ -1,310 +1,298 @@
 """
-CRACKWATCH Advanced Analytics Engine.
-Wall of Shame, Heatmap, Priority Engine, Before/After, Road Health Score.
+Ledger analytics for RoadGuard AI.
+
+Everything here is computed from the reports ledger and its status history:
+open backlog, SLA performance against RoadGuard targets, daily timeline,
+per-ward accountability, heatmap and priority queue. Nothing is typed in.
 """
 
-import math
-import time
-from datetime import datetime, timezone
+from __future__ import annotations
+
+import statistics
 from collections import defaultdict
+from datetime import datetime, timedelta, timezone
 
-# ── Mock contractor data (for hackathon demo) ──
-CONTRACTORS = {
-    "CTR-001": {"name": "Mumbai Road Corp", "area": "Thane", "city": "Mumbai"},
-    "CTR-002": {"name": "Panvel Infrastructure Ltd", "area": "Raigad", "city": "Navi Mumbai"},
-    "CTR-003": {"name": "Navi Mumbai PWD", "area": "NMMC Central", "city": "Navi Mumbai"},
-    "CTR-004": {"name": "Kalamboli Builders", "area": "Kalamboli", "city": "Navi Mumbai"},
-    "CTR-005": {"name": "Pune Smart Roads", "area": "Pune Central", "city": "Pune"},
-    "CTR-006": {"name": "Pune Municipal Works", "area": "Pune East", "city": "Pune"},
-    "CTR-007": {"name": "South Mumbai Roadworks", "area": "South Mumbai", "city": "Mumbai"},
-    "CTR-008": {"name": "Western Suburbs Builders", "area": "Western Suburbs", "city": "Mumbai"},
-    "CTR-009": {"name": "Eastern Suburbs Contractor", "area": "Eastern Suburbs", "city": "Mumbai"},
-    "CTR-010": {"name": "CIDCO Infrastructure", "area": "CIDCO Zone", "city": "Navi Mumbai"},
-}
+from config import SLA_ACK_HOURS, SLA_FIX_DAYS
+from hazards import parse_ts
+from wards import WARDS_BY_CODE
 
-# Location → contractor mapping (keyword-based, first match wins).
-# Order matters — most specific first.
-AREA_CONTRACTOR = {
-    # South Mumbai
-    "Marine Drive": "CTR-007",
-    "Dadar": "CTR-007",
-    "Sea Link": "CTR-007",
-    "Worli": "CTR-007",
-    "South Mumbai": "CTR-007",
-    # Western Suburbs
-    "Bandra": "CTR-008",
-    "BKC": "CTR-008",
-    "Andheri": "CTR-008",
-    "Lokhandwala": "CTR-008",
-    "Borivali": "CTR-008",
-    "Juhu": "CTR-008",
-    "Malad": "CTR-008",
-    # Eastern Suburbs
-    "Chembur": "CTR-009",
-    "Ghatkopar": "CTR-009",
-    "Powai": "CTR-009",
-    "Mulund": "CTR-009",
-    "Kanjurmarg": "CTR-009",
-    # Navi Mumbai — NMMC central
-    "Vashi": "CTR-003",
-    "Nerul": "CTR-003",
-    "Belapur": "CTR-003",
-    "Seawoods": "CTR-003",
-    "Airoli": "CTR-003",
-    "Kopar Khairane": "CTR-003",
-    "Navi Mumbai": "CTR-003",
-    # CIDCO zones — Kharghar, Taloja, Uran
-    "Kharghar": "CTR-010",
-    "Taloja": "CTR-010",
-    "Uran": "CTR-010",
-    "Kamothe": "CTR-010",
-    # Raigad / Panvel
-    "Panvel": "CTR-002",
-    "Kalamboli": "CTR-004",
-    # Thane
-    "Thane": "CTR-001",
-    "Ghodbunder": "CTR-001",
-    # Pune
-    "Pune": "CTR-005",
+CITY_FOR_AUTHORITY = {
+    "MCGM": "Mumbai", "NMMC": "Navi Mumbai", "PMC": "Panvel", "TMC": "Thane", "CIDCO": "Uran (CIDCO)",
 }
 
 
-def assign_contractor(location_name: str) -> dict:
-    """Assign a contractor based on location."""
-    for area, ctr_id in AREA_CONTRACTOR.items():
-        if area.lower() in (location_name or "").lower():
-            ctr = CONTRACTORS[ctr_id]
-            return {"id": ctr_id, **ctr}
-    # Default
-    return {"id": "CTR-003", **CONTRACTORS["CTR-003"]}
+def report_severity(r: dict) -> float:
+    s = r.get("summary") or {}
+    if "max_severity" in s:
+        return float(s["max_severity"])
+    return float((r.get("stats") or {}).get("max_severity", 0))
 
 
-def calculate_negligence_score(severity: float, hours_unresolved: float) -> float:
-    """Negligence = severity × time unresolved (hours). Higher = worse."""
-    return round(severity * max(1, hours_unresolved / 24), 1)  # Normalized to days
+def report_label(r: dict) -> str:
+    dets = r.get("detections") or []
+    if not dets:
+        return "Unknown"
+    top = max(dets, key=lambda d: d.get("severity", 0))
+    return top.get("label") or top.get("display_name") or "Defect"
 
 
-def generate_wall_of_shame(reports: list) -> dict:
-    """
-    Rank contractors by performance. Wall of Shame leaderboard.
-    """
-    contractor_stats = defaultdict(lambda: {
-        "total_reports": 0, "fixed": 0, "unfixed": 0,
-        "total_severity": 0, "total_negligence": 0,
-        "avg_fix_time_hrs": 0, "fix_times": [],
-    })
+def _first_time(reports: list[dict], statuses: set[str]) -> datetime | None:
+    times = [parse_ts(h["time"]) for r in reports for h in (r.get("status_history") or [])
+             if h.get("status") in statuses]
+    return min(times) if times else None
 
-    now = datetime.now(timezone.utc)
 
-    for r in reports:
-        loc = r.get("location", {}).get("name", "") or r.get("location_name", "")
-        ctr = assign_contractor(loc)
-        ctr_id = ctr["id"]
-        stats = contractor_stats[ctr_id]
-        stats["contractor"] = ctr
-        stats["total_reports"] += 1
-
-        avg_sev = r.get("stats", {}).get("avg_severity", 50)
-        stats["total_severity"] += avg_sev
-
-        if r.get("status") == "fixed":
-            stats["fixed"] += 1
-            if r.get("fix_date"):
-                submitted = datetime.fromisoformat(r["timestamp"].replace("Z", "+00:00"))
-                fixed_at = datetime.fromisoformat(r["fix_date"].replace("Z", "+00:00"))
-                hrs = (fixed_at - submitted).total_seconds() / 3600
-                stats["fix_times"].append(hrs)
-        else:
-            stats["unfixed"] += 1
-            submitted = datetime.fromisoformat(r["timestamp"].replace("Z", "+00:00"))
-            hrs_unresolved = (now - submitted).total_seconds() / 3600
-            stats["total_negligence"] += calculate_negligence_score(avg_sev, hrs_unresolved)
-
-    # Build leaderboard
-    leaderboard = []
-    for ctr_id, stats in contractor_stats.items():
-        fix_rate = (stats["fixed"] / stats["total_reports"] * 100) if stats["total_reports"] > 0 else 0
-        avg_fix_time = (sum(stats["fix_times"]) / len(stats["fix_times"])) if stats["fix_times"] else 0
-        avg_severity = stats["total_severity"] / stats["total_reports"] if stats["total_reports"] > 0 else 0
-
-        # Performance score: higher = better
-        performance = fix_rate - (stats["total_negligence"] / max(1, stats["total_reports"]))
-        performance = max(0, min(100, performance))
-
-        leaderboard.append({
-            "contractor_id": ctr_id,
-            "contractor_name": stats["contractor"]["name"],
-            "area": stats["contractor"]["area"],
-            "city": stats["contractor"]["city"],
-            "total_reports": stats["total_reports"],
-            "fixed": stats["fixed"],
-            "unfixed": stats["unfixed"],
-            "fix_rate": round(fix_rate, 1),
-            "avg_severity": round(avg_severity, 1),
-            "avg_fix_time_hrs": round(avg_fix_time, 1),
-            "negligence_score": round(stats["total_negligence"], 1),
-            "performance_score": round(performance, 1),
-            "rank": 0,
-        })
-
-    # Sort: worst performer first (lowest performance = rank 1 = most shameful)
-    leaderboard.sort(key=lambda x: x["performance_score"])
-    for i, entry in enumerate(leaderboard):
-        entry["rank"] = i + 1
-
+def hazard_sla(hazard: dict, members: list[dict], now: datetime) -> dict:
+    """SLA outcome for one hazard against RoadGuard targets."""
+    first = parse_ts(hazard["first_reported"])
+    ack = _first_time(members, {"acknowledged", "in_progress", "fixed"})
+    fixed = _first_time(members, {"fixed"}) if hazard["status"] == "fixed" else None
+    level = hazard.get("worst_level") or "S1"
+    fix_deadline = first + timedelta(days=SLA_FIX_DAYS.get(level, 60))
+    ack_deadline = first + timedelta(hours=SLA_ACK_HOURS)
+    ack_breach = (ack is None and now > ack_deadline) or (ack is not None and ack > ack_deadline)
+    fix_breach = (fixed is None and now > fix_deadline) or (fixed is not None and fixed > fix_deadline)
+    end = fixed or now
     return {
-        "leaderboard": leaderboard,
-        "total_contractors": len(leaderboard),
-        "worst_performer": leaderboard[0] if leaderboard else None,
-        "best_performer": leaderboard[-1] if leaderboard else None,
+        "ack_breach": ack_breach,
+        "fix_breach": fix_breach,
+        "breach": ack_breach or fix_breach,
+        "days_open": (end - first).total_seconds() / 86400.0,
+        "fixed_at": fixed,
     }
 
 
-def generate_heatmap_data(reports: list) -> list:
+def _members(hazard: dict, by_id: dict) -> list[dict]:
+    return [by_id[i] for i in hazard["report_ids"] if i in by_id]
+
+
+def summary(reports: list[dict], hazards: list[dict], now: datetime | None = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    by_id = {r["id"]: r for r in reports}
+    open_h = [h for h in hazards if h["status"] != "fixed"]
+    slas = {h["hazard_id"]: hazard_sla(h, _members(h, by_id), now) for h in hazards}
+    fixed_7d = sum(1 for h in hazards if h["status"] == "fixed" and slas[h["hazard_id"]]["fixed_at"]
+                   and now - slas[h["hazard_id"]]["fixed_at"] <= timedelta(days=7))
+    days_open = [slas[h["hazard_id"]]["days_open"] for h in open_h]
+    breaches = sum(1 for s in slas.values() if s["breach"])
+    return {
+        "open_hazards": len(open_h),
+        "open_reports": sum(1 for r in reports if r.get("status") != "fixed"),
+        "critical_open": sum(1 for h in open_h if h.get("worst_level") == "S4"),
+        "fixed_last_7d": fixed_7d,
+        "median_days_open": round(statistics.median(days_open), 1) if days_open else 0,
+        "backlog_cost": sum(int(h.get("total_cost", 0)) for h in open_h),
+        "reports_last_30d": sum(1 for r in reports if now - parse_ts(r["timestamp"]) <= timedelta(days=30)),
+        "duplicates_merged": sum(h["report_count"] for h in hazards) - len(hazards),
+        "sla": {
+            "ack_target_h": SLA_ACK_HOURS,
+            "fix_target_d": dict(SLA_FIX_DAYS),
+            "breaches": breaches,
+            "on_time_pct": round((len(hazards) - breaches) / len(hazards) * 100, 1) if hazards else 100.0,
+            "basis": "RoadGuard targets, not government commitments",
+        },
+        "updated_at": now.isoformat(),
+    }
+
+
+def timeline(reports: list[dict], days: int = 30, now: datetime | None = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    days = max(1, min(int(days), 365))
+    start = (now - timedelta(days=days - 1)).date()
+    buckets = {(start + timedelta(days=i)).isoformat(): {"reported": 0, "acknowledged": 0, "fixed": 0}
+               for i in range(days)}
+    key_for = {"submitted": "reported", "acknowledged": "acknowledged", "fixed": "fixed"}
+    for r in reports:
+        for h in r.get("status_history") or []:
+            k = key_for.get(h.get("status"))
+            if not k:
+                continue
+            day = parse_ts(h["time"]).date().isoformat()
+            if day in buckets:
+                buckets[day][k] += 1
+    rows = [{"date": d, **v} for d, v in buckets.items()]
+    totals = {k: sum(row[k] for row in rows) for k in ("reported", "acknowledged", "fixed")}
+    return {"days": rows, "totals": totals}
+
+
+def wards_analytics(reports: list[dict], hazards: list[dict], now: datetime | None = None) -> dict:
+    now = now or datetime.now(timezone.utc)
+    by_id = {r["id"]: r for r in reports}
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for h in hazards:
+        code = (h.get("ward") or {}).get("code") or "—"
+        groups[code].append(h)
+    rows = []
+    for code, hs in groups.items():
+        w = WARDS_BY_CODE.get(code)
+        open_h = [h for h in hs if h["status"] != "fixed"]
+        slas = [hazard_sla(h, _members(h, by_id), now) for h in hs]
+        open_days = [s["days_open"] for h, s in zip(hs, slas) if h["status"] != "fixed"]
+        breaches = sum(1 for s in slas if s["breach"])
+        critical_open = sum(1 for h in open_h if h.get("worst_level") == "S4")
+        avg_days = sum(open_days) / len(open_days) if open_days else 0.0
+        health = 100 - min(40, 8 * len(open_h)) - min(30, 10 * critical_open) - min(20, 5 * breaches) \
+            - min(10, avg_days / 3)
+        rows.append({
+            "code": code,
+            "name": w["name"] if w else "Outside mapped wards",
+            "authority": w["authority"] if w else None,
+            "latitude": w["latitude"] if w else None,
+            "longitude": w["longitude"] if w else None,
+            "open": len(open_h),
+            "fixed": len(hs) - len(open_h),
+            "critical_open": critical_open,
+            "avg_days_open": round(avg_days, 1),
+            "sla_breaches": breaches,
+            "health_score": round(max(0.0, min(100.0, health)), 1),
+        })
+    rows.sort(key=lambda r: (r["health_score"], -r["open"]))
+    return {"wards": rows, "total": len(rows)}
+
+
+# ------------------------------------------------------------- compat analytics
+
+def generate_wall_of_shame(reports: list[dict], hazards: list[dict], now: datetime | None = None) -> dict:
+    """Accountability by ward office, computed from the ledger (worst first).
+
+    Keeps the legacy field names (contractor_*) so older screens still work;
+    the "contractor" is the ward office responsible for the road.
     """
-    Generate heatmap points for damage visualization.
-    Returns list of {lat, lng, intensity} for map rendering.
-    """
+    now = now or datetime.now(timezone.utc)
+    by_id = {r["id"]: r for r in reports}
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for h in hazards:
+        groups[(h.get("ward") or {}).get("code") or "—"].append(h)
+    board = []
+    for code, hs in groups.items():
+        w = WARDS_BY_CODE.get(code)
+        slas = [hazard_sla(h, _members(h, by_id), now) for h in hs]
+        fixed = [s for h, s in zip(hs, slas) if h["status"] == "fixed"]
+        unfixed = [(h, s) for h, s in zip(hs, slas) if h["status"] != "fixed"]
+        fix_rate = len(fixed) / len(hs) * 100
+        avg_fix_h = sum(s["days_open"] for s in fixed) / len(fixed) * 24 if fixed else 0.0
+        negligence = sum(h["worst_severity"] * max(1.0, s["days_open"]) for h, s in unfixed)
+        avg_sev = sum(h["worst_severity"] for h in hs) / len(hs)
+        performance = max(0.0, min(100.0, fix_rate - negligence / max(1, len(hs)) / 10))
+        name = f"{w['authority']} ward {code}" if w else "Unmapped area"
+        board.append({
+            "contractor_id": code,
+            "contractor_name": name,
+            "ward": code,
+            "authority": w["authority"] if w else None,
+            "area": w["name"] if w else "Outside mapped wards",
+            "city": CITY_FOR_AUTHORITY.get(w["authority"], "") if w else "",
+            "total_reports": sum(h["report_count"] for h in hs),
+            "total_hazards": len(hs),
+            "fixed": len(fixed),
+            "unfixed": len(unfixed),
+            "fix_rate": round(fix_rate, 1),
+            "avg_severity": round(avg_sev, 1),
+            "avg_fix_time_hrs": round(avg_fix_h, 1),
+            "negligence_score": round(negligence, 1),
+            "sla_breaches": sum(1 for s in slas if s["breach"]),
+            "performance_score": round(performance, 1),
+            "rank": 0,
+        })
+    board.sort(key=lambda x: (x["performance_score"], -x["negligence_score"]))
+    for i, b in enumerate(board):
+        b["rank"] = i + 1
+    return {
+        "leaderboard": board,
+        "total_contractors": len(board),
+        "worst_performer": board[0] if board else None,
+        "best_performer": board[-1] if board else None,
+        "basis": "Computed from the RoadGuard ledger, grouped by ward office",
+    }
+
+
+def generate_heatmap_data(reports: list[dict]) -> list[dict]:
     points = []
     for r in reports:
-        loc = r.get("location", {})
-        lat = loc.get("latitude")
-        lng = loc.get("longitude")
-        if lat and lng:
-            severity = r.get("stats", {}).get("avg_severity", 50)
-            status = r.get("status", "submitted")
-            # Fixed = low intensity, unfixed = high
-            intensity = severity / 100 if status != "fixed" else 0.1
-            points.append({
-                "lat": lat, "lng": lng,
-                "intensity": round(intensity, 2),
-                "severity": severity,
-                "status": status,
-                "type": r.get("detections", [{}])[0].get("display_name", "Damage") if r.get("detections") else "Unknown",
-            })
+        loc = r.get("location") or {}
+        lat, lng = loc.get("latitude"), loc.get("longitude")
+        if lat is None or lng is None:
+            continue
+        sev = report_severity(r)
+        status = r.get("status", "submitted")
+        points.append({
+            "lat": lat, "lng": lng,
+            "intensity": round(sev / 100 if status != "fixed" else 0.1, 2),
+            "severity": sev,
+            "severity_level": (r.get("summary") or {}).get("worst_level"),
+            "status": status,
+            "type": report_label(r),
+        })
     return points
 
 
-def generate_priority_queue(reports: list, traffic_multiplier: float = 1.0) -> list:
-    """
-    Maintenance Priority Engine.
-    Priority = Severity × Traffic Density × Time Unresolved
-    Returns top urgent repairs.
-    """
-    now = datetime.now(timezone.utc)
-    priorities = []
-
-    for r in reports:
-        if r.get("status") == "fixed":
+def generate_priority_queue(reports: list[dict], hazards: list[dict], now: datetime | None = None) -> list[dict]:
+    """Open hazards ranked by severity x time unresolved x public interest."""
+    now = now or datetime.now(timezone.utc)
+    by_id = {r["id"]: r for r in reports}
+    queue = []
+    for h in hazards:
+        if h["status"] == "fixed":
             continue
-
-        avg_sev = r.get("stats", {}).get("avg_severity", 50)
-        submitted = datetime.fromisoformat(r["timestamp"].replace("Z", "+00:00"))
-        hours_unresolved = (now - submitted).total_seconds() / 3600
-        days_unresolved = hours_unresolved / 24
-
-        # Priority formula
-        time_factor = min(days_unresolved, 30) / 30  # Cap at 30 days
-        upvotes = r.get("upvotes", 1)
-        traffic_factor = min(upvotes / 10, 2.0) * traffic_multiplier  # More upvotes = more traffic
-        priority_score = avg_sev * (1 + time_factor) * (1 + traffic_factor)
-
-        loc = r.get("location", {})
-        cost = 0
-        repair_method = ""
-        if r.get("detections"):
-            det = r["detections"][0]
-            if "cost" in det:
-                cost = det["cost"].get("cost_estimated", 0)
-                repair_method = det["cost"].get("repair_method", "")
-
-        priorities.append({
-            "report_id": r.get("id"),
-            "location": loc.get("name", "Unknown"),
-            "damage_type": r.get("detections", [{}])[0].get("display_name", "Damage") if r.get("detections") else "Unknown",
-            "severity": avg_sev,
-            "days_unresolved": round(days_unresolved, 1),
-            "upvotes": upvotes,
-            "priority_score": round(priority_score, 1),
-            "estimated_cost": cost,
-            "repair_method": repair_method,
-            "status": r.get("status"),
+        worst = by_id.get(h["worst_report_id"]) or {}
+        days = (now - parse_ts(h["first_reported"])).total_seconds() / 86400
+        time_factor = min(days, 30) / 30
+        traffic = min(h["total_upvotes"] / 10, 2.0)
+        score = h["worst_severity"] * (1 + time_factor) * (1 + traffic)
+        top = max(worst.get("detections") or [{}], key=lambda d: d.get("severity", 0))
+        queue.append({
+            "report_id": h["worst_report_id"],
+            "hazard_id": h["hazard_id"],
+            "location": h.get("location_name") or "Unknown",
+            "ward": h.get("ward"),
+            "damage_type": report_label(worst) if worst else "Unknown",
+            "severity": h["worst_severity"],
+            "severity_level": h.get("worst_level"),
+            "days_unresolved": round(days, 1),
+            "upvotes": h["total_upvotes"],
+            "report_count": h["report_count"],
+            "priority_score": round(score, 1),
+            "estimated_cost": int(h.get("total_cost", 0)),
+            "repair_method": (top.get("cost") or {}).get("repair_method", ""),
+            "status": h["status"],
         })
-
-    priorities.sort(key=lambda x: x["priority_score"], reverse=True)
-    for i, p in enumerate(priorities):
-        p["rank"] = i + 1
-
-    return priorities
+    queue.sort(key=lambda x: x["priority_score"], reverse=True)
+    for i, q in enumerate(queue):
+        q["rank"] = i + 1
+    return queue
 
 
-def generate_city_health_scores(reports: list) -> list:
-    """
-    Road Health Score per city/area.
-    Score = 100 - (damage_density × severity_factor × unresolved_factor)
-    """
-    city_data = defaultdict(lambda: {
-        "total": 0, "fixed": 0, "unfixed": 0,
-        "total_severity": 0, "total_fix_time": 0, "fix_count": 0,
-    })
-
-    now = datetime.now(timezone.utc)
-
-    for r in reports:
-        loc = r.get("location", {})
-        # Determine city/area
-        loc_name = loc.get("name", "") or ""
-        city = "Navi Mumbai"  # default
-        for c in ["Thane", "Panvel", "Kalamboli", "Kharghar", "Belapur", "Pune"]:
-            if c.lower() in loc_name.lower():
-                city = c
-                break
-
-        stats = city_data[city]
-        stats["total"] += 1
-        stats["total_severity"] += r.get("stats", {}).get("avg_severity", 50)
-
-        if r.get("status") == "fixed":
-            stats["fixed"] += 1
-            if r.get("fix_date"):
-                submitted = datetime.fromisoformat(r["timestamp"].replace("Z", "+00:00"))
-                fixed_at = datetime.fromisoformat(r["fix_date"].replace("Z", "+00:00"))
-                stats["total_fix_time"] += (fixed_at - submitted).total_seconds() / 3600
-                stats["fix_count"] += 1
-        else:
-            stats["unfixed"] += 1
-
+def generate_city_health_scores(reports: list[dict], hazards: list[dict], now: datetime | None = None) -> list[dict]:
+    now = now or datetime.now(timezone.utc)
+    by_id = {r["id"]: r for r in reports}
+    groups: dict[str, list[dict]] = defaultdict(list)
+    for h in hazards:
+        auth = (h.get("ward") or {}).get("authority")
+        groups[CITY_FOR_AUTHORITY.get(auth, "Other")].append(h)
     scores = []
-    for city, stats in city_data.items():
-        fix_rate = (stats["fixed"] / stats["total"]) if stats["total"] > 0 else 0
-        avg_severity = stats["total_severity"] / stats["total"] if stats["total"] > 0 else 0
-        avg_fix_time = stats["total_fix_time"] / stats["fix_count"] if stats["fix_count"] > 0 else 999
-
-        # Health = 100 - penalties
-        damage_penalty = min(30, stats["unfixed"] * 5)
-        severity_penalty = min(30, avg_severity * 0.4)
-        speed_penalty = min(20, avg_fix_time / 24 * 5)  # Slow fix = penalty
-        fix_bonus = fix_rate * 20  # Good fix rate = bonus
-
-        health = max(0, min(100, 100 - damage_penalty - severity_penalty - speed_penalty + fix_bonus))
-
-        # Trend — simplified (for hackathon)
-        trend = "improving" if fix_rate > 0.5 else "stable" if fix_rate > 0.2 else "worsening"
-
+    for city, hs in groups.items():
+        slas = [hazard_sla(h, _members(h, by_id), now) for h in hs]
+        fixed = [s for h, s in zip(hs, slas) if h["status"] == "fixed"]
+        unfixed = len(hs) - len(fixed)
+        fix_rate = len(fixed) / len(hs)
+        avg_sev = sum(h["worst_severity"] for h in hs) / len(hs)
+        avg_fix_h = sum(s["days_open"] for s in fixed) / len(fixed) * 24 if fixed else None
+        health = 100 - min(30, unfixed * 5) - min(30, avg_sev * 0.4) \
+            - (min(20, (avg_fix_h or 0) / 24 * 2) if fixed else 10) + fix_rate * 20
         scores.append({
             "city": city,
-            "health_score": round(health, 1),
-            "total_reports": stats["total"],
-            "fixed": stats["fixed"],
-            "unfixed": stats["unfixed"],
+            "health_score": round(max(0.0, min(100.0, health)), 1),
+            "total_reports": sum(h["report_count"] for h in hs),
+            "total_hazards": len(hs),
+            "fixed": len(fixed),
+            "unfixed": unfixed,
             "fix_rate": round(fix_rate * 100, 1),
-            "avg_severity": round(avg_severity, 1),
-            "avg_fix_time_hrs": round(avg_fix_time, 1) if stats["fix_count"] > 0 else None,
-            "trend": trend,
+            "avg_severity": round(avg_sev, 1),
+            "avg_fix_time_hrs": round(avg_fix_h, 1) if avg_fix_h is not None else None,
+            "trend": "improving" if fix_rate > 0.5 else "stable" if fix_rate > 0.2 else "worsening",
         })
-
     scores.sort(key=lambda x: x["health_score"], reverse=True)
     for i, s in enumerate(scores):
         s["rank"] = i + 1
-
     return scores
+
