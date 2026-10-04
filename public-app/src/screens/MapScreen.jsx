@@ -4,6 +4,7 @@ import { CodeBadge, SeverityChip, StatusStamp } from "@shared/ui/marks.jsx";
 import { api, mediaUrl, useApi } from "@shared/lib/api.js";
 import { ago, number } from "@shared/lib/format.js";
 import { defectOf, wardLabel } from "@shared/lib/roadguard.js";
+import ErrorBoundary from "@shared/ui/ErrorBoundary.jsx";
 import { hasVoted, rememberVote } from "../session.js";
 import { ErrorNote } from "../ui.jsx";
 
@@ -84,9 +85,11 @@ export default function MapScreen() {
       {error && !data ? (
         <div className="px-4 pt-20"><ErrorNote error={error} onRetry={reload} title="The map couldn't load reports" /></div>
       ) : (
+        <ErrorBoundary name="map" title="The map didn't load" className="m-4">
         <Suspense fallback={<div className="h-full animate-pulse bg-paper-3" />}>
           <RoadMap className="h-full rounded-none border-0" zoomControl={false} points={points} selected={selected} onSelect={setSelected} label="Reported road damage near you" />
         </Suspense>
+        </ErrorBoundary>
       )}
       {sel && <Sheet key={sel.id} report={sel} onClose={() => setSelected(null)} />}
     </div>

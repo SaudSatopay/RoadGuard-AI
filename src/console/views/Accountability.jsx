@@ -31,7 +31,23 @@ function Wards() {
       <div className="mb-3 flex justify-end">
         <Segmented label="Sort wards" value={sort} onChange={setSort} size="sm" options={[{ value: "worst", label: "Worst health" }, { value: "open", label: "Most open" }, { value: "slow", label: "Slowest" }]} />
       </div>
-      <div className="overflow-x-auto">
+      <ul className="divide-y divide-line border-y border-line sm:hidden">
+        {rows.map((w) => (
+          <li key={w.code + w.name} className="py-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="min-w-0 truncate font-medium"><span className="font-mono text-xs num text-ink-3">{w.code}</span> {w.name}</span>
+              <span className="text-xs text-ink-3">{w.authority}</span>
+            </div>
+            <div className="mt-1.5 grid grid-cols-[1fr_auto] items-center gap-3">
+              <span className="font-mono text-xs num text-ink-2">
+                {number(w.open)} open · <span className={w.critical_open ? "text-crit" : ""}>{number(w.critical_open)} S4</span> · {w.avg_days_open != null ? `${number(w.avg_days_open, 1)} d avg` : "—"} · {number(w.sla_breaches)} late
+              </span>
+              <HealthBar value={w.health_score} />
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <caption className="sr-only">Ward scorecard computed from the public ledger</caption>
           <thead>
@@ -89,14 +105,16 @@ function Forecast() {
   const { data, error, loading } = useApi("/analytics/forecast", { refreshMs: 120000 });
   if (loading && !data) return <Loading rows={4} />;
   if (error && !data) return <ErrorState error={error} />;
-  const zones = (data?.zones || []).slice(0, 6);
+  const zones = [...(data?.zones || [])].sort((a, b) => a.earliest_failure_days - b.earliest_failure_days).slice(0, 6);
   return (
     <ul className="divide-y divide-line border-b border-line">
       {zones.map((z) => (
         <li key={z.zone} className="py-3">
           <div className="flex items-baseline justify-between gap-3">
             <span className="truncate font-medium">{z.zone}</span>
-            <span className={`font-mono text-sm num ${z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>{z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}</span>
+            <span className={`font-mono text-sm num ${z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>
+              {z.earliest_failure_days <= 0 ? "Already failing" : z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}
+            </span>
           </div>
           <p className="text-xs text-ink-3">{z.forecast} · {z.active_issues} open</p>
         </li>

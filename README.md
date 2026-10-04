@@ -134,6 +134,12 @@ cd backend && .venv/Scripts/python -m pytest -q                # 56 backend test
 
 ---
 
+## Before a real deployment
+
+This is a local demo build. The demo accounts in `backend/auth.py` are hard-coded with plaintext passwords, CORS is open so phones on the LAN can connect, the JWT secret is random per run unless `JWT_SECRET_KEY` is set, and the ledger is a JSON file. Replace those with a user database, hashed passwords, a fixed secret and a scoped origin list before exposing the API.
+
+---
+
 ## Credits
 
 - **Team:** Saud Satopay, Jayant Patil, Shravani Talashilkar · **Guide:** Ms. Sangita Nikumbh

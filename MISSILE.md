@@ -1,6 +1,6 @@
 # Missile log: RoadGuard AI
 
-status: stage=1 iteration=0 verdict=CONTINUE updated=2026-10-04T14:44:30.310Z
+status: stage=1 iteration=1 verdict=CONTINUE updated=2026-10-04T16:50:52.721Z
 mode: full flight (existing project, revamp + rename)
 branch: missile/20261004
 url: none
@@ -72,19 +72,19 @@ Main-session findings added after reading the code:
 ## Scoreboard
 
 <!-- scoreboard:start -->
-| dimension | baseline | target |
-|---|---|---|
-| first_impression | 4 | 9+ |
-| design_system | 4 | 9+ |
-| layout | 3 | 9+ |
-| motion | 3 | 9+ |
-| ux_completeness | 4 | 9+ |
-| accessibility | 4 | 9+ |
-| performance | 4 | 9+ |
-| code_health | 4 | 9+ |
-| story | 5 | 9+ |
-| shipped | 2 | 9+ |
-| **mean** | 3.7 | 9.5+ |
+| dimension | baseline | it1 | target |
+|---|---|---|---|
+| first_impression | 4 | 7 | 9+ |
+| design_system | 4 | 8 | 9+ |
+| layout | 3 | 7 | 9+ |
+| motion | 3 | 7 | 9+ |
+| ux_completeness | 4 | 7 | 9+ |
+| accessibility | 4 | 8 | 9+ |
+| performance | 4 | 8 | 9+ |
+| code_health | 4 | 8 | 9+ |
+| story | 5 | 7 | 9+ |
+| shipped | 2 | 4 | 9+ |
+| **mean** | 3.7 | 7.1 | 9.5+ |
 <!-- scoreboard:end -->
 
 ## Plan
@@ -140,6 +140,19 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
   - [M] layout: Make the dashboard sidebar an off-canvas drawer below 768 px, and fix whatever makes the staff login and dashboard render blank at 1440 (src/components/Sidebar.jsx, src/App.jsx, src/components/LoginPage.jsx)
   - [S] accessibility: Remove user-scalable=no, add <main> landmarks, raise muted text tokens to 4.5:1, and add a global :focus-visible ring in both apps (public-app/index.html, src/App.jsx, public-app/src/App.jsx, src/index.css, public-app/src/index.css)
   - [M] code_health: Fix the 69 root lint errors, add PyJWT to backend/requirements.txt, and write three tests covering severity/cost, the /detect endpoint, and the citizen report flow (eslint.config.js, backend/requirements.txt, backend/severity.py, backend/cost_engine.py)
+
+### Iteration 1 · 2026-10-04T16:50:52.721Z
+- mean 7.1, min 4, verdict **CONTINUE**
+- url: http://localhost:4173 (landing + console), http://localhost:4175 (citizen app), http://127.0.0.1:8000 (API)
+- screens: landing, console login, console today, console hazards, console hazard detail, console scan (empty), console scan result, console accountability, console model card, console settings, citizen onboarding, citizen map, citizen report (photo, where, result), citizen my reports, citizen rewards, citizen ledger
+- next fixes:
+  - [S] first_impression: Remove the '—' placeholders from the hero stat row (show the labelled legacy figures or drop the cells), and below 640 px move the compare figure directly under the headline so the marked photo is in the first viewport (src/landing/Hero.jsx, src/landing/facts.json)
+  - [S] story: Add the missing assets/readme/landing.png and a 1200×630 public/og.png built from the tokens; add og tags to the citizen index.html (README.md, assets/readme/landing.png, public/og.png, public-app/index.html)
+  - [S] performance: Preload a sized AVIF/WebP hero photo with fetchpriority=high and lazy-split the console bundle off /login to get LCP under 2.5 s on all three routes (src/landing/Hero.jsx, src/App.jsx, public/showcase)
+  - [L] shipped: Deploy both frontends as static sites and the FastAPI backend on a CPU host with the legacy weights, wire the API URL through env vars, and tag v4.0.0 (backend/main.py, vite.config.js, public-app/vite.config.js, .env.example)
+  - [M] ux_completeness: Read backlog, acted-on and counts from one backend aggregate on the landing, console and citizen ledger, and make the Model card show the legacy detector's measured metrics instead of '—' and 'No evaluation file found' (src/landing/Ledger.jsx, src/landing/ModelFacts.jsx, src/console/views/ModelCard.jsx, src/console/data.js)
+  - [S] accessibility: Re-run the keyboard walk and Lighthouse after the marker-name and file-input fixes, and fix the landing contrast element and the label-name mismatch on landing and login (src/landing/Hero.jsx, src/console/Login.jsx, shared/tokens.css)
+  - [M] layout: At 390, render the Accountability scorecard as stacked rows with the health bar visible, let hazard-row titles wrap so days-open never truncates, and fix the empty sixth KPI cell on Today (src/console/views/Accountability.jsx, src/console/ui.jsx, src/console/views)
 
 <!-- iterations:end -->
 

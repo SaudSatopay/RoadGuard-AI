@@ -61,8 +61,8 @@ def main(api: str) -> None:
         image = res.get("image") or {"width": res.get("image_width"), "height": res.get("image_height")}
         model = res.get("model") or {"name": "legacy YOLOv8s", "runtime": "unknown"}
         items.append({
-            "file": name,
-            "src": f"/showcase/{name}",
+            "file": name.replace(".jpg", ".webp"),
+            "src": f"/showcase/{name.replace('.jpg', '.webp')}",
             "source": f"RDD2022 India test split · {name.replace('india-', 'India_').replace('.jpg', '')}",
             "width": image["width"],
             "height": image["height"],

@@ -71,12 +71,12 @@ export default function Ledger() {
                 <dd className="mt-1 font-display text-4xl font-bold num">{s ? number(s.fixed) : "—"}</dd>
               </div>
               <div>
-                <dt className="label text-ink-3">Acted on</dt>
+                <dt className="label text-ink-3">Reports acted on</dt>
                 <dd className="mt-1 font-display text-4xl font-bold num">{s ? `${Math.round(s.performance_score)}%` : "—"}</dd>
               </div>
               <div>
-                <dt className="label text-ink-3">Repair backlog</dt>
-                <dd className="mt-1 font-display text-4xl font-bold num">{s ? rupees(s.total_estimated_cost, { compact: true }) : "—"}</dd>
+                <dt className="label text-ink-3">Open repair backlog</dt>
+                <dd className="mt-1 font-display text-4xl font-bold num">{s ? rupees(s.backlog_cost ?? s.total_estimated_cost, { compact: true }) : "—"}</dd>
               </div>
             </dl>
           </div>

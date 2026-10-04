@@ -4,9 +4,20 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import compression from "compression";
 import { heroPoster } from "./tools/hero-poster.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+
+// `vite preview` serves files uncompressed; a real host gzips them. Compress the preview so local Lighthouse
+// numbers reflect what visitors would actually download.
+const previewCompression = {
+  name: "roadguard-preview-compression",
+  configurePreviewServer(server) {
+    server.middlewares.use(compression());
+  },
+};
+
 
 // Optional HTTPS for testing the camera/GPS from a phone on the LAN (mkcert certs in certs/).
 const certFile = path.join(here, "certs", "cert.pem");
@@ -22,7 +33,7 @@ const proxy = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), heroPoster()],
+  plugins: [react(), tailwindcss(), heroPoster(), previewCompression],
   resolve: {
     alias: {
       "@": path.join(here, "src"),
@@ -31,7 +42,7 @@ export default defineConfig({
   },
   // Pre-bundle the lazily imported libraries so a first visit to the console never re-optimises React mid-session.
   optimizeDeps: {
-    include: ["react", "react-dom", "lucide-react", "leaflet", "react-leaflet", "@paper-design/shaders-react"],
+    include: ["react", "react-dom", "lucide-react", "leaflet", "react-leaflet"],
   },
   server: { host: true, port: 5173, https, proxy },
   preview: { host: true, port: 4173, https, proxy },

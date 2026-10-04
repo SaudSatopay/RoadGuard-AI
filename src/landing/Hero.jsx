@@ -117,52 +117,6 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2">
-          <p
-            className={`max-w-[34rem] text-lg leading-relaxed text-ink-2 ${enter ? "rg-fade-in" : ""}`}
-            style={enter ? { animationDelay: "0.35s", animationDuration: "400ms" } : undefined}
-          >
-            Photograph a damaged road. RoadGuard marks each pothole and crack the way an inspector would, works out how
-            bad it is and what the repair will cost, and keeps the complaint public until the road is fixed.
-          </p>
-          <div
-            className={`mt-9 flex flex-wrap items-center gap-3 ${enter ? "rg-fade-in" : ""}`}
-            style={enter ? { animationDelay: "0.45s", animationDuration: "350ms" } : undefined}
-          >
-            <a
-              href={citizenAppUrl()}
-              className="group inline-flex h-12 items-center gap-2 rounded-sm bg-paint px-5 font-display text-lg font-bold uppercase tracking-[0.02em] text-paint-ink transition-transform duration-150 ease-out active:scale-[0.98] [@media(hover:hover)]:hover:-translate-y-0.5"
-            >
-              Report a road
-              <ArrowUpRight className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-            </a>
-            <Link
-              to="/console"
-              className="group inline-flex h-12 items-center gap-2 rounded-sm border-[1.5px] border-ink px-5 font-display text-lg font-bold uppercase tracking-[0.02em] text-ink transition-colors duration-150 [@media(hover:hover)]:hover:bg-ink [@media(hover:hover)]:hover:text-paper"
-            >
-              Inspector console
-              <ArrowRight className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-          </div>
-          <dl className="mt-12 grid max-w-md grid-cols-3 gap-x-6 border-t border-line pt-5">
-            <div>
-              <dt className="label text-ink-3">Trained on</dt>
-              <dd className="mt-1 font-display text-3xl font-bold num">{number(facts.dataset.train_images / 1000, 1)}k</dd>
-              <dd className="text-xs text-ink-3">road photos, 5 countries</dd>
-            </div>
-            <div>
-              <dt className="label normal-case text-ink-3">mAP@0.5</dt>
-              <dd className="mt-1 font-display text-3xl font-bold num">{rg ? rg.test.map50.toFixed(2) : "—"}</dd>
-              <dd className="text-xs text-ink-3">held-out test, {number(facts.dataset.test_images)} photos</dd>
-            </div>
-            <div>
-              <dt className="label text-ink-3">Per photo</dt>
-              <dd className="mt-1 font-display text-3xl font-bold num">{rg?.latency_ms ? Math.round(rg.latency_ms) : "—"}<span className="text-lg"> ms</span></dd>
-              <dd className="text-xs text-ink-3">detection on one GPU</dd>
-            </div>
-          </dl>
-        </div>
-
         <div className="lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1">
           <div className="lg:-mr-6 xl:-mr-16">
             <MarkedPhoto
@@ -212,8 +166,8 @@ export default function Hero() {
             <Legend item={item} />
           </div>
           {!own && (
-            <div className="mt-5 flex flex-wrap items-center gap-2" role="group" aria-label="Other sample roads">
-              <span className="label mr-1 text-ink-3">Other roads</span>
+            <div className="mt-5 flex items-center gap-2 overflow-x-auto pb-1" role="group" aria-label="Other sample roads">
+              <span className="label mr-1 shrink-0 text-ink-3">Other roads</span>
               {items.map((it, i) => (
                 <button
                   key={it.file}
@@ -221,7 +175,7 @@ export default function Hero() {
                   onClick={() => setIndex(i)}
                   aria-pressed={i === index}
                   aria-label={`Show ${it.source}`}
-                  className={`relative h-12 w-12 overflow-hidden rounded-xs border-2 transition-[border-color,transform] duration-150 ${i === index ? "border-paint-deep" : "border-transparent [@media(hover:hover)]:hover:-translate-y-0.5"}`}
+                  className={`relative h-12 w-12 shrink-0 overflow-hidden rounded-xs border-2 transition-[border-color,transform] duration-150 ${i === index ? "border-paint-deep" : "border-transparent [@media(hover:hover)]:hover:-translate-y-0.5"}`}
                 >
                   <img src={it.src.replace("/showcase/", "/showcase/thumbs/")} alt="" width="48" height="48" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
@@ -229,6 +183,70 @@ export default function Hero() {
             </div>
           )}
         </div>
+
+        <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2">
+          <p
+            className={`max-w-[34rem] text-lg leading-relaxed text-ink-2 ${enter ? "rg-fade-in" : ""}`}
+            style={enter ? { animationDelay: "0.35s", animationDuration: "400ms" } : undefined}
+          >
+            Photograph a damaged road. RoadGuard marks each pothole and crack the way an inspector would, works out how
+            bad it is and what the repair will cost, and keeps the complaint public until the road is fixed.
+          </p>
+          <div
+            className={`mt-9 flex flex-wrap items-center gap-3 ${enter ? "rg-fade-in" : ""}`}
+            style={enter ? { animationDelay: "0.45s", animationDuration: "350ms" } : undefined}
+          >
+            <a
+              href={citizenAppUrl()}
+              className="group inline-flex h-12 items-center gap-2 rounded-sm bg-paint px-5 font-display text-lg font-bold uppercase tracking-[0.02em] text-paint-ink transition-transform duration-150 ease-out active:scale-[0.98] [@media(hover:hover)]:hover:-translate-y-0.5"
+            >
+              Report a road
+              <ArrowUpRight className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+            </a>
+            <Link
+              to="/console"
+              className="group inline-flex h-12 items-center gap-2 rounded-sm border-[1.5px] border-ink px-5 font-display text-lg font-bold uppercase tracking-[0.02em] text-ink transition-colors duration-150 [@media(hover:hover)]:hover:bg-ink [@media(hover:hover)]:hover:text-paper"
+            >
+              Inspector console
+              <ArrowRight className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
+          </div>
+          <dl className="mt-12 grid max-w-md grid-cols-3 gap-x-6 border-t border-line pt-5">
+            <div>
+              <dt className="label text-ink-3">Trained on</dt>
+              <dd className="mt-1 font-display text-3xl font-bold num">{number(facts.dataset.train_images / 1000, 1)}k</dd>
+              <dd className="text-xs text-ink-3">road photos, 5 countries</dd>
+            </div>
+            {rg ? (
+              <>
+                <div>
+                  <dt className="label normal-case text-ink-3">mAP@0.5</dt>
+                  <dd className="mt-1 font-display text-3xl font-bold num">{rg.test.map50.toFixed(2)}</dd>
+                  <dd className="text-xs text-ink-3">held-out test, {number(facts.dataset.test_images)} photos</dd>
+                </div>
+                <div>
+                  <dt className="label text-ink-3">Per photo</dt>
+                  <dd className="mt-1 font-display text-3xl font-bold num">{Math.round(rg.latency_ms)}<span className="text-lg"> ms</span></dd>
+                  <dd className="text-xs text-ink-3">on one GPU · {Math.round(rg.cpu_onnx_latency_ms)} ms CPU</dd>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <dt className="label text-ink-3">Defects</dt>
+                  <dd className="mt-1 font-display text-3xl font-bold num">4</dd>
+                  <dd className="text-xs text-ink-3">pothole and three crack types</dd>
+                </div>
+                <div>
+                  <dt className="label text-ink-3">Merged within</dt>
+                  <dd className="mt-1 font-display text-3xl font-bold num">25<span className="text-lg"> m</span></dd>
+                  <dd className="text-xs text-ink-3">duplicate reports become one</dd>
+                </div>
+              </>
+            )}
+          </dl>
+        </div>
+
       </div>
     </section>
   );

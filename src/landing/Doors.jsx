@@ -1,6 +1,5 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Link } from "@shared/lib/router.js";
-import MetalSign from "./MetalSign.jsx";
 import { citizenAppUrl } from "./links.js";
 
 export default function Doors() {
@@ -15,7 +14,7 @@ export default function Doors() {
               Take the photo, confirm where you are, send. You see what the detector found before you leave the spot, and you
               can follow the repair from your phone.
             </p>
-            <div className="mt-auto flex flex-wrap items-end justify-between gap-8 pt-12">
+            <div className="mt-auto pt-12">
               <a
                 href={citizenAppUrl()}
                 className="group inline-flex h-12 items-center gap-2 rounded-sm bg-paint px-5 font-display text-lg font-bold uppercase tracking-[0.02em] text-paint-ink transition-transform duration-150 active:scale-[0.98] [@media(hover:hover)]:hover:-translate-y-0.5"
@@ -23,9 +22,6 @@ export default function Doors() {
                 Open the citizen app
                 <ArrowUpRight className="h-5 w-5" aria-hidden="true" />
               </a>
-              <div className="-mb-6 -mr-4 opacity-95 sm:-mr-2">
-                <MetalSign size={190} />
-              </div>
             </div>
           </div>
         </div>

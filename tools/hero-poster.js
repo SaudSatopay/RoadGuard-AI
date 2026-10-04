@@ -31,16 +31,16 @@ export function posterMarkup() {
     <p class="label text-ink-3">Road hazard survey · Mumbai &amp; Navi Mumbai</p>
     <h1 class="mt-6 font-display text-[clamp(3.4rem,8.2vw,7.6rem)] font-extrabold leading-[0.88] tracking-[-0.01em] text-ink">Every pothole,<br>on the record.</h1>
   </div>
-  <div class="lg:col-span-5 lg:col-start-1 lg:row-start-2">
-    <p class="max-w-[34rem] text-lg leading-relaxed text-ink-2">Photograph a damaged road. RoadGuard marks each pothole and crack the way an inspector would, works out how bad it is and what the repair will cost, and keeps the complaint public until the road is fixed.</p>
-    <noscript><p class="mt-6 border-l-[3px] border-crit pl-3 text-sm">The inspector console and the citizen app need JavaScript. This page shows a sample survey without it.</p></noscript>
-  </div>
   <div class="lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1"><div class="lg:-mr-6 xl:-mr-16">
     <div class="relative w-full overflow-hidden rounded-md bg-asphalt" style="aspect-ratio:${it.width} / ${it.height}">
       <img src="${escape(it.src)}" alt="Road photograph: ${escape(it.source)}" width="${it.width}" height="${it.height}" fetchpriority="high" class="absolute inset-0 h-full w-full object-cover">
       <svg viewBox="0 0 ${it.width} ${it.height}" preserveAspectRatio="none" class="absolute inset-0 h-full w-full" aria-hidden="true">${marks}</svg>
     </div>
   </div></div>
+  <div class="lg:col-span-5 lg:col-start-1 lg:row-start-2">
+    <p class="max-w-[34rem] text-lg leading-relaxed text-ink-2">Photograph a damaged road. RoadGuard marks each pothole and crack the way an inspector would, works out how bad it is and what the repair will cost, and keeps the complaint public until the road is fixed.</p>
+    <noscript><p class="mt-6 border-l-[3px] border-crit pl-3 text-sm">The inspector console and the citizen app need JavaScript. This page shows a sample survey without it.</p></noscript>
+  </div>
 </div>
 <script>if (location.pathname !== "/") document.getElementById("rg-poster").remove();</script>`;
 }
@@ -51,7 +51,9 @@ export function heroPoster() {
     transformIndexHtml(html) {
       if (!html.includes("<!--hero-poster-->")) return html;
       try {
-        return html.replace("<!--hero-poster-->", posterMarkup());
+        const { items } = JSON.parse(fs.readFileSync(SHOWCASE, "utf8"));
+        const preload = `<link rel="preload" as="image" href="${items[0].src}" type="image/webp" fetchpriority="high" />`;
+        return html.replace("</head>", `    ${preload}\n  </head>`).replace("<!--hero-poster-->", posterMarkup());
       } catch (err) {
         this?.warn?.(`hero poster skipped: ${err.message}`);
         return html.replace("<!--hero-poster-->", "");

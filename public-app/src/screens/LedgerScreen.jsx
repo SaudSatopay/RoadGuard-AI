@@ -19,8 +19,8 @@ export default function LedgerScreen() {
           <dl className="grid grid-cols-2 gap-px border-y border-line bg-line [&>div]:bg-paper [&>div]:px-1 [&>div]:py-3">
             <div><dt className="label text-ink-3">Reports</dt><dd className="font-display text-4xl font-bold num">{s ? number(s.total_reports) : "—"}</dd></div>
             <div className="!pl-4"><dt className="label text-ink-3">Fixed</dt><dd className="font-display text-4xl font-bold num text-ok">{s ? number(s.fixed) : "—"}</dd></div>
-            <div><dt className="label text-ink-3">Acted on</dt><dd className="font-display text-4xl font-bold num">{s ? `${Math.round(s.performance_score)}%` : "—"}</dd></div>
-            <div className="!pl-4"><dt className="label text-ink-3">Repair backlog</dt><dd className="font-display text-4xl font-bold num">{s ? rupees(s.total_estimated_cost, { compact: true }) : "—"}</dd></div>
+            <div><dt className="label text-ink-3">Reports acted on</dt><dd className="font-display text-4xl font-bold num">{s ? `${Math.round(s.performance_score)}%` : "—"}</dd></div>
+            <div className="!pl-4"><dt className="label text-ink-3">Open repair backlog</dt><dd className="font-display text-4xl font-bold num">{s ? rupees(s.backlog_cost ?? s.total_estimated_cost, { compact: true }) : "—"}</dd></div>
           </dl>
         )}
       </section>

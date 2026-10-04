@@ -216,11 +216,6 @@
   background-image: repeating-linear-gradient(-45deg, color-mix(in oklch, var(--color-paint) 60%, transparent) 0 2px, transparent 2px 5px);
 }
 
-/* Colours handed to WebGL shaders, which can't read CSS colour functions. Keep in step with the tokens above. */
-:root {
-  --shader-tint: #f6f1dd;
-  --shader-back: #00000000;
-}
 
 /* Motion: CSS only. Delays are set inline; prefers-reduced-motion collapses them (see the media query above). */
 @keyframes rg-draw {
@@ -235,7 +230,7 @@
 }
 .rg-draw {
   stroke-dasharray: 1;
-  animation: rg-draw 420ms ease-out both;
+  animation: rg-draw 340ms ease-out both;
 }
 .rg-fade-in {
   animation: rg-fade 220ms ease-out both;

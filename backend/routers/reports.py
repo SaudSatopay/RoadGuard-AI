@@ -174,9 +174,14 @@ async def public_stats():
     addressed = counts["fixed"] + counts["in_progress"] + counts["acknowledged"]
     total_cost = sum(int((r.get("summary") or {}).get("total_cost", 0)) for r in reports)
     hazards, _ = store.hazards()
+    open_hazards = [h for h in hazards if h.get("status") != "fixed"]
+    # Same definition as /analytics/summary: the estimate for every hazard still open, counted once per hazard.
+    backlog = sum(int(h.get("total_cost", 0)) for h in open_hazards)
     return {
         "total_reports": total,
         "total_hazards": len(hazards),
+        "open_hazards": len(open_hazards),
+        "backlog_cost": backlog,
         "fixed": counts["fixed"],
         "in_progress": counts["in_progress"],
         "acknowledged": counts["acknowledged"],

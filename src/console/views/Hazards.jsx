@@ -7,6 +7,7 @@ import { ago, coords, dateLabel, dateTimeLabel, number, rupees } from "@shared/l
 import { navigate, useSearchParams } from "@shared/lib/router.js";
 import { defectOf, LEVELS, STATUS_FLOW, STATUSES, wardLabel } from "@shared/lib/roadguard.js";
 import ComplaintLetter from "../ComplaintLetter.jsx";
+import ErrorBoundary from "@shared/ui/ErrorBoundary.jsx";
 import { nextStatus, useHazards } from "../data.js";
 import { Button, Empty, ErrorState, Loading, PageHead, SectionHead, Segmented, Spinner } from "../ui.jsx";
 
@@ -36,16 +37,16 @@ function HazardRow({ h, selected }) {
         <span className="min-w-0">
           <span className="flex items-center gap-2">
             <CodeBadge code={d?.code} />
-            <span className="truncate text-sm font-medium">{h.worst?.location_name || h.hazard_id}</span>
+            <span className="line-clamp-2 text-sm font-medium leading-snug">{h.worst?.location_name || h.hazard_id}</span>
           </span>
           <span className="mt-0.5 block truncate font-mono text-2xs text-ink-3">
             {h.hazard_id} · {wardLabel(h.ward) ? `${wardLabel(h.ward)} · ` : ""}{h.report_count} report{h.report_count === 1 ? "" : "s"}
-            {h.days_open != null ? ` · ${Math.floor(h.days_open)} d open` : ""}
           </span>
         </span>
         <span className="flex flex-col items-end gap-1">
           <SeverityChip level={h.worst_level} showName={false} />
           <StatusStamp status={h.status} />
+          {h.days_open != null && <span className="font-mono text-2xs num text-ink-3">{Math.floor(h.days_open)} d open</span>}
         </span>
       </button>
     </li>
@@ -128,7 +129,7 @@ function Detail({ hazard, onChanged }) {
         <h2 className="mt-1 font-display text-4xl font-extrabold leading-none">{d?.label || "Road damage"}</h2>
         <p className="mt-2 text-sm text-ink-2">
           {r?.location_name}
-          {hazard.ward?.code && hazard.ward.code !== "—" ? ` · Ward ${hazard.ward.code} (${hazard.ward.name})` : ""}
+          {hazard.ward?.code && hazard.ward.code !== "—" ? ` · ${hazard.ward.authority === "MCGM" ? `Ward ${hazard.ward.code} (${hazard.ward.name})` : wardLabel(hazard.ward)}` : ""}
         </p>
         <p className="mt-1 font-mono text-2xs num text-ink-3">{coords(hazard.latitude, hazard.longitude)}{r?.authority ? ` · ${typeof r.authority === "string" ? r.authority : r.authority.name || ""}` : ""}</p>
       </div>
@@ -209,14 +210,18 @@ export default function Hazards() {
       <div className="grid gap-6 xl:grid-cols-12">
         <div className={`${showMap ? "block" : "hidden"} xl:col-span-7 xl:block`}>
           <div className="xl:sticky xl:top-8">
-            <Suspense fallback={<div className="h-[60vh] animate-pulse rounded-md bg-paper-3" />}>
-              <RoadMap className="h-[52vh] xl:h-[calc(100dvh-180px)]" points={points} selected={selectedId} onSelect={select} />
-            </Suspense>
+            <ErrorBoundary name="map" title="The map didn't load">
+              <Suspense fallback={<div className="h-[60vh] animate-pulse rounded-md bg-paper-3" />}>
+                <RoadMap className="h-[52vh] xl:h-[calc(100dvh-180px)]" points={points} selected={selectedId} onSelect={select} />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         </div>
         <div className="xl:col-span-5">
           {selected ? (
-            <Detail hazard={selected} onChanged={reload} />
+            <ErrorBoundary key={selected.hazard_id} name="hazard detail" title="This hazard couldn't be shown">
+              <Detail hazard={selected} onChanged={reload} />
+            </ErrorBoundary>
           ) : (
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">

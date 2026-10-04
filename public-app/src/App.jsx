@@ -26,7 +26,7 @@ function initialTab() {
   return TABS.some((x) => x.id === t) ? t : "map";
 }
 
-const SAMPLE = showcase.items.find((i) => i.file === "india-004459.jpg") || showcase.items[0];
+const SAMPLE = showcase.items.find((i) => i.file === "india-004459.webp") || showcase.items[0];
 
 function Onboarding() {
   const [name, setName] = useState("");

@@ -7,6 +7,7 @@ import { defectOf, wardLabel } from "@shared/lib/roadguard.js";
 import { CodeBadge, SeverityChip, StatusStamp } from "@shared/ui/marks.jsx";
 import { useHazards } from "../data.js";
 import TimelineChart from "../TimelineChart.jsx";
+import ErrorBoundary from "@shared/ui/ErrorBoundary.jsx";
 import { Empty, ErrorState, Loading, PageHead, SectionHead, Stat } from "../ui.jsx";
 
 const RoadMap = lazy(() => import("@shared/ui/RoadMap.jsx"));
@@ -17,8 +18,8 @@ function SummaryStrip({ s }) {
       <Stat label="Open hazards" value={s ? number(s.open_hazards) : "—"} sub={s ? `${number(s.open_reports)} citizen reports` : " "} />
       <Stat label="Critical open" value={s ? number(s.critical_open) : "—"} tone={s?.critical_open ? "crit" : "ink"} sub="S4 · fix within 7 days" />
       <Stat label="Median days open" value={s?.median_days_open != null ? number(s.median_days_open, 1) : "—"} sub="across open hazards" />
-      <Stat label="Repair backlog" value={s ? rupees(s.backlog_cost, { compact: true }) : "—"} sub="indicative estimate" />
-      <Stat label="Fixed on time" value={s?.sla ? `${Math.round(s.sla.on_time_pct)}%` : "—"} tone={s?.sla?.breaches ? "ink" : "ok"} sub={s?.sla ? `${number(s.sla.breaches)} past RoadGuard target` : " "} />
+      <Stat label="Open repair backlog" value={s ? rupees(s.backlog_cost, { compact: true }) : "—"} sub="estimate for open hazards" />
+      <Stat className="col-span-2 lg:col-span-1" label="Fixed on time" value={s?.sla ? `${Math.round(s.sla.on_time_pct)}%` : "—"} tone={s?.sla?.breaches ? "ink" : "ok"} sub={s?.sla ? `${number(s.sla.breaches)} past RoadGuard target` : " "} />
     </div>
   );
 }
@@ -45,9 +46,9 @@ function Worklist({ hazards }) {
                 <span className="flex flex-wrap items-center gap-2">
                   <CodeBadge code={d?.code} />
                   <span className="truncate font-medium">{d?.label || "Road damage"}</span>
-                  {h.report_count > 1 && <span className="font-mono text-2xs text-ink-3">×{h.report_count} reports</span>}
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-ink-2">
+                  {h.report_count > 1 && <span className="font-mono text-2xs text-ink-3">×{h.report_count} · </span>}
                   {r?.location_name || "Reported location"}
                   {wardLabel(h.ward) ? ` · ${wardLabel(h.ward)}` : ""}
                 </span>
@@ -104,6 +105,7 @@ export default function Today({ summary }) {
         <div className="space-y-8 xl:col-span-5">
           <section aria-labelledby="map-title">
             <SectionHead title={<span id="map-title">Where</span>} note={`${points.length} hazards`} />
+            <ErrorBoundary name="map" title="The map didn't load" className="mt-3">
             <Suspense fallback={<div className="mt-3 h-[300px] animate-pulse rounded-md bg-paper-3" />}>
               <RoadMap
                 className="mt-3 h-[300px]"
@@ -112,6 +114,7 @@ export default function Today({ summary }) {
                 label="Map of open and fixed hazards"
               />
             </Suspense>
+            </ErrorBoundary>
           </section>
           <section aria-labelledby="trend-title">
             <SectionHead title={<span id="trend-title">Last 30 days</span>} />

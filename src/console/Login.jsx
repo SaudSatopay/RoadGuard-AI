@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import MarkedPhoto from "@shared/ui/MarkedPhoto.jsx";
 import { Wordmark } from "@shared/ui/marks.jsx";
 import { api } from "@shared/lib/api.js";
 import { Link, navigate, useSearchParams } from "@shared/lib/router.js";
-import showcase from "@shared/data/showcase.json";
 import { signIn, useSession } from "./session.js";
 import { Spinner } from "./ui.jsx";
+
+const LoginArt = lazy(() => import("./LoginArt.jsx"));
+const wide = () => typeof window !== "undefined" && window.matchMedia?.("(min-width: 1024px)").matches;
 
 const DEMO = [
   { username: "admin", password: "admin123", who: "Inspector Kumar · PWD Mumbai" },
@@ -21,7 +22,7 @@ export default function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
-  const plate = showcase.items[1] || showcase.items[0];
+  const [showArt] = useState(wide);
 
   useEffect(() => {
     document.title = "Sign in · RoadGuard console";
@@ -55,8 +56,7 @@ export default function Login() {
       <div className="on-asphalt grain relative hidden flex-col justify-between bg-asphalt px-10 py-10 text-chalk lg:flex">
         <Link to="/" aria-label="RoadGuard AI home"><Wordmark tone="chalk" /></Link>
         <div className="mx-auto w-full max-w-[560px]">
-          <MarkedPhoto src={plate.src} width={plate.width} height={plate.height} detections={plate.detections} mode="marks" notes="compact" alt={`Sample survey: ${plate.source}`} />
-          <p className="mt-3 font-mono text-2xs text-chalk-2">{plate.source} · {plate.detections.length} defects marked</p>
+          {showArt && <Suspense fallback={<div className="aspect-square w-full rounded-md bg-asphalt-2" />}><LoginArt /></Suspense>}
         </div>
         <p className="max-w-[40ch] text-sm text-chalk-2">The console ranks every open hazard in the city by what gets worse fastest, and keeps the paper trail.</p>
       </div>

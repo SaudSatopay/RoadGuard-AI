@@ -5,6 +5,7 @@ import { CodeBadge, SeverityChip } from "@shared/ui/marks.jsx";
 import { api, mediaUrl } from "@shared/lib/api.js";
 import { coords, conf, number } from "@shared/lib/format.js";
 import { ROAD_CLASSES, wardLabel } from "@shared/lib/roadguard.js";
+import ErrorBoundary from "@shared/ui/ErrorBoundary.jsx";
 import { ErrorNote, PrimaryButton, SecondaryButton, Spinner } from "../ui.jsx";
 
 const PinMap = lazy(() => import("./PinMap.jsx"));
@@ -108,9 +109,11 @@ function WhereStep({ place, setPlace, onNext }) {
           {gps === "unavailable" && "This phone can't share location. Drag the pin to the spot."}
           {gps === "idle" && "Drag the pin to the spot."}
         </p>
+        <ErrorBoundary name="pin map" title="The map didn't load; your GPS position is still used." className="mt-2">
         <Suspense fallback={<div className="mt-2 h-56 animate-pulse rounded-md bg-paper-3" />}>
           <PinMap center={center} onMove={(ll) => { setPlace((pl) => ({ ...pl, lat: ll.lat, lng: ll.lng, accuracy: null })); setGps("ok"); }} />
         </Suspense>
+        </ErrorBoundary>
       </div>
       <fieldset>
         <legend className="text-sm font-medium">What kind of road?</legend>

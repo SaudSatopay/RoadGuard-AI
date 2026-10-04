@@ -9,7 +9,7 @@ const COUNTRY = { India: "India", Japan: "Japan", Czech: "Czech Republic", Unite
 function Compare({ label, ours, base }) {
   return (
     <div className="grid grid-cols-[minmax(0,10rem)_1fr] items-center gap-3 py-2 sm:grid-cols-[13rem_1fr]">
-      <span className="truncate text-sm">{label}</span>
+      <span className="min-w-0 text-sm leading-snug">{label}</span>
       <div className="space-y-1">
         {[["ours", ours], ["base", base]].map(([k, v]) => (
           <div key={k} className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export default function ModelCard() {
               <div><dt className="label text-ink-3">Train / val / test</dt><dd className="font-mono num">{number(det.trained_on.train_images)} / {number(det.trained_on.val_images)} / {number(det.trained_on.test_images)}</dd></div>
               <div><dt className="label text-ink-3">Recipe</dt><dd>{det.trained_on.recipe || "—"}</dd></div>
             </dl>
-          ) : <p className="mt-3 text-sm text-ink-2">No evaluation file found for the loaded detector.</p>}
+          ) : <p className="mt-3 text-sm text-ink-2">The evaluation for this detector hasn't been published yet; <span className="font-mono text-xs">training/export.py</span> writes it after training.</p>}
         </section>
         <section aria-labelledby="pipe-h">
           <SectionHead title={<span id="pipe-h">Pipeline</span>} />

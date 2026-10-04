@@ -4,9 +4,20 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import compression from "compression";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const shared = path.resolve(here, "..", "shared");
+
+// `vite preview` serves files uncompressed; a real host gzips them. Compress the preview so local Lighthouse
+// numbers reflect what visitors would actually download.
+const previewCompression = {
+  name: "roadguard-preview-compression",
+  configurePreviewServer(server) {
+    server.middlewares.use(compression());
+  },
+};
+
 
 // Optional HTTPS so phones on the LAN get camera and GPS access (mkcert certs in ../certs).
 const certFile = path.resolve(here, "..", "certs", "cert.pem");
@@ -21,7 +32,7 @@ const proxy = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), previewCompression],
   resolve: {
     alias: { "@shared": shared },
     // Shared components import React and friends; resolve them from this app so there is one copy.

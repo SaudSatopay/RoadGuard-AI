@@ -7,6 +7,7 @@ import { ringPath } from "@shared/lib/spray.js";
 import { ROAD_CLASSES } from "@shared/lib/roadguard.js";
 import { useSession } from "../session.js";
 import EvidenceSheet from "../EvidenceSheet.jsx";
+import ErrorBoundary from "@shared/ui/ErrorBoundary.jsx";
 import { Button, Empty, ErrorState, PageHead, Segmented, Spinner } from "../ui.jsx";
 
 const MODES = [
@@ -403,9 +404,11 @@ export default function Scan() {
       <PageHead title="Scan a photo" sub="Run the detector on any road photo, a dashcam clip or the live camera. Nothing is filed until you choose to.">
         <Segmented label="Scan mode" value={mode} onChange={setMode} options={MODES} />
       </PageHead>
-      {mode === "photo" && <PhotoScan />}
-      {mode === "video" && <VideoScan />}
-      {mode === "live" && <LiveScan />}
+      <ErrorBoundary key={mode} name={`${mode} scan`} title="The scanner hit a problem">
+        {mode === "photo" && <PhotoScan />}
+        {mode === "video" && <VideoScan />}
+        {mode === "live" && <LiveScan />}
+      </ErrorBoundary>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // The evidence sheet: what the detector found, why each defect scored what it did, and what it costs.
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { conf, number, rupees } from "@shared/lib/format.js";
+import { conf, dateTimeLabel, number, rupees } from "@shared/lib/format.js";
 import { CodeBadge, SeverityChip } from "@shared/ui/marks.jsx";
 
 function FactorBars({ factors = [] }) {
@@ -43,7 +43,6 @@ function DefectRow({ d, open, onToggle, active, onHover }) {
           <div>
             <p className="label mb-2 text-ink-3">Severity {number(d.severity, 1)} / 100 · {d.severity_name || d.severity_level}</p>
             <FactorBars factors={d.severity_factors} />
-            {d.explanation?.recommendation && <p className="mt-2 text-xs text-ink-2">{d.explanation.recommendation}</p>}
           </div>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             {g && (
@@ -82,7 +81,7 @@ export default function EvidenceSheet({ result, active, onHover, header }) {
       <div className="flex items-start justify-between gap-3 border-b-[3px] border-ink pb-2">
         <div>
           <p className="sign text-xl leading-none">Evidence sheet</p>
-          <p className="mt-1 font-mono text-2xs num text-ink-3">{result.id}{result.timestamp ? ` · ${new Date(result.timestamp).toLocaleString("en-IN")}` : ""}</p>
+          <p className="mt-1 font-mono text-2xs num text-ink-3">{result.id}{result.timestamp ? ` · ${dateTimeLabel(result.timestamp)}` : ""}</p>
         </div>
         {header}
       </div>
