@@ -34,8 +34,7 @@ def lean_yaml() -> Path:
                 keep.append(img)
             background_seen += 1
     lst = root / "train_lean.txt"
-    lst.write_text("
-".join(p.resolve().as_posix() for p in keep))
+    lst.write_text(chr(10).join(p.resolve().as_posix() for p in keep))
     yml = root / "data_lean.yaml"
     yml.write_text(DATA.read_text().replace("train: images/train", f"train: {lst.resolve().as_posix()}"))
     print(f"lean training set: {len(keep)} images ({background_seen} empty-road images, 1 in 4 kept)")
@@ -62,7 +61,7 @@ def main():
     model_path = args.model if Path(args.model).exists() else str(weights_dir / args.model)
 
     if args.resume:
-        YOLO(str(HERE / "runs" / name / "weights" / "last.pt")).train(resume=True)
+        YOLO(str(HERE / "runs" / name / "weights" / "last.pt")).train(resume=True, workers=args.workers)
         return
 
     model = YOLO(args.init or model_path)

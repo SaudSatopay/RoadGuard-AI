@@ -1,210 +1,188 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Camera, BarChart3, ScanLine, ArrowRight, User, LogOut, Video, Navigation, Trophy } from 'lucide-react';
-import MapPage from './pages/MapPage';
-import ReportPage from './pages/ReportPage';
-import StatsPage from './pages/StatsPage';
-import LiveScanPage from './pages/LiveScanPage';
-import NavigatePage from './pages/NavigatePage';
-import GamificationPage from './pages/GamificationPage';
+import { lazy, Suspense, useEffect, useState } from "react";
+import { BarChart3, Camera, ListChecks, LogOut, Map as MapIcon, Trophy } from "lucide-react";
+import { api } from "@shared/lib/api.js";
+import { Wordmark } from "@shared/ui/marks.jsx";
+import MarkedPhoto from "@shared/ui/MarkedPhoto.jsx";
+import showcase from "@shared/data/showcase.json";
+import { setCitizen, useCitizen } from "./session.js";
+import { PrimaryButton, Skeleton, Spinner } from "./ui.jsx";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const MapScreen = lazy(() => import("./screens/MapScreen.jsx"));
+const ReportFlow = lazy(() => import("./screens/ReportFlow.jsx"));
+const MineScreen = lazy(() => import("./screens/MineScreen.jsx"));
+const RewardsScreen = lazy(() => import("./screens/RewardsScreen.jsx"));
+const LedgerScreen = lazy(() => import("./screens/LedgerScreen.jsx"));
 
-const tabs = [
-  { id: 'map', label: 'Map', icon: MapPin },
-  { id: 'report', label: 'Report', icon: Camera },
-  { id: 'game', label: 'Rewards', icon: Trophy },
-  { id: 'stats', label: 'Stats', icon: BarChart3 },
-  { id: 'logout', label: 'Exit', icon: LogOut },
+const TABS = [
+  { id: "map", label: "Map", icon: MapIcon },
+  { id: "mine", label: "My reports", icon: ListChecks },
+  { id: "report", label: "Report", icon: Camera, primary: true },
+  { id: "rewards", label: "Rewards", icon: Trophy },
+  { id: "ledger", label: "Ledger", icon: BarChart3 },
 ];
 
-function CitizenLogin({ onLogin }) {
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+function initialTab() {
+  const t = new URLSearchParams(window.location.search).get("tab");
+  return TABS.some((x) => x.id === t) ? t : "map";
+}
 
-  const handleSubmit = async (e) => {
+const SAMPLE = showcase.items.find((i) => i.file === "india-004459.jpg") || showcase.items[0];
+
+function Onboarding() {
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [account, setAccount] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function start(e) {
     e.preventDefault();
-    if (!name.trim()) return;
-    setLoading(true);
-    setError('');
+    const n = name.trim();
+    if (!n) return setError("Type the name you want on the public ledger.");
+    setBusy(true);
+    setError(null);
     try {
-      // If password provided, try password-based login (for saud/demo accounts)
-      if (password.trim()) {
-        const fd = new FormData();
-        fd.append('username', name.trim());
-        fd.append('password', password.trim());
-        const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', body: fd });
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem('crackwatch_citizen', JSON.stringify(data));
-          onLogin(data);
-          setLoading(false);
-          return;
-        }
-        setError('Invalid username or password');
-        setLoading(false);
-        return;
+      if (account) {
+        const data = await api("/auth/login", { method: "POST", form: { username: n, password } });
+        setCitizen({ ...data, name: data.name || n });
+      } else {
+        const data = await api("/auth/register", { method: "POST", form: { name: n } });
+        setCitizen(data);
       }
-      // No password → fresh citizen registration
-      const fd = new FormData();
-      fd.append('name', name.trim());
-      const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', body: fd });
-      const data = await res.json();
-      localStorage.setItem('crackwatch_citizen', JSON.stringify(data));
-      onLogin(data);
-    } catch {
-      // Offline fallback — let them in anyway
-      const data = { name: name.trim(), role: 'citizen', token: 'offline' };
-      localStorage.setItem('crackwatch_citizen', JSON.stringify(data));
-      onLogin(data);
+    } catch (err) {
+      if (account && err.status === 401) setError("That name and password don't match. Leave the password empty to start fresh.");
+      else if (err.status === 0) setError("Can't reach RoadGuard right now. Check your connection and try again.");
+      else setError(err.message);
+    } finally {
+      setBusy(false);
     }
-    setLoading(false);
-  };
+  }
 
   return (
-    <div className="h-[100dvh] w-screen bg-[#0a0a0b] flex items-center justify-center overflow-hidden">
-    <div className="h-full w-full sm:h-[90vh] sm:max-h-[900px] sm:w-[420px] sm:rounded-[2.5rem] sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/50 bg-[#131315] flex flex-col px-8 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[10%] right-[-10%] w-[300px] h-[300px] bg-[#4edea3]/[0.04] rounded-full blur-[80px]" />
-      </div>
-
-      {/* Push content to center vertically */}
-      <div className="flex-1" />
-
-      <motion.div className="relative z-10 w-full flex flex-col items-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex flex-col items-center mb-10 w-full">
-          <div className="w-16 h-16 rounded-2xl bg-[#4edea3]/10 border border-[#4edea3]/20 flex items-center justify-center mb-5">
-            <ScanLine className="w-8 h-8 text-[#4edea3]" />
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Space Grotesk' }}>
-            CRACK<span className="text-[#4edea3]">WATCH</span>
-          </h1>
-          <p className="text-sm text-white/40 mt-2">Report road damage in your area</p>
+    <div className="flex min-h-dvh flex-col">
+      <div className="kerb" aria-hidden="true" />
+      <div className="px-5 pt-6"><Wordmark size="sm" /></div>
+      <div className="mx-5 mt-6 h-[34vh] max-h-[300px] overflow-hidden rounded-md" aria-hidden="true">
+        <div className="-translate-y-[22%]">
+          <MarkedPhoto src={SAMPLE.src} width={SAMPLE.width} height={SAMPLE.height} detections={SAMPLE.detections} mode="marks" notes="compact" alt="" />
         </div>
-
-        <form onSubmit={handleSubmit} className="w-full flex flex-col">
-          <div style={{ marginBottom: 24 }}>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 10 }}>Your Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Enter your name"
-              className="w-full px-5 py-4 rounded-2xl bg-white/[0.05] text-white text-base outline-none placeholder-white/20 focus:ring-2 focus:ring-[#4edea3]/30 border border-white/[0.06]"
-              autoFocus
-            />
-          </div>
-
-          <div style={{ marginBottom: 28 }}>
-            <label className="text-[11px] text-white/40 uppercase tracking-[0.15em] font-bold block" style={{ marginBottom: 10 }}>Password <span className="text-white/20 normal-case tracking-normal">(optional — only for existing accounts)</span></label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Leave empty for new account"
-              className="w-full px-5 py-4 rounded-2xl bg-white/[0.05] text-white text-base outline-none placeholder-white/20 focus:ring-2 focus:ring-[#4edea3]/30 border border-white/[0.06]"
-            />
-          </div>
-
-          {error && (
-            <p className="text-xs text-[#ff6b6b] text-center" style={{ marginBottom: 20 }}>{error}</p>
+      </div>
+      <main className="flex flex-1 flex-col justify-end px-5 pb-8 pt-8">
+        <p className="label text-ink-3">For citizens</p>
+        <h1 className="mt-3 font-display text-[3.4rem] font-extrabold leading-[0.9]">See a pothole? Put it on the record.</h1>
+        <p className="mt-4 text-base text-ink-2">
+          Photograph it, confirm where it is, send. You'll see what was found before you leave the spot, and you can follow the repair
+          from here.
+        </p>
+        <form onSubmit={start} className="mt-8 space-y-4" noValidate>
+          <label className="block">
+            <span className="text-sm font-medium">Your name</span>
+            <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" placeholder="As it should appear on the ledger"
+              className="mt-1.5 h-13 w-full rounded-xs border border-line-strong bg-sheet px-3 py-3 placeholder:text-ink-3" />
+          </label>
+          {account && (
+            <label className="block">
+              <span className="text-sm font-medium">Password</span>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password"
+                className="mt-1.5 w-full rounded-xs border border-line-strong bg-sheet px-3 py-3" />
+            </label>
           )}
-
-          <motion.button
-            type="submit"
-            disabled={!name.trim() || loading}
-            className={`w-full py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-2 ${
-              name.trim() ? 'bg-gradient-to-r from-[#4edea3] to-[#10b981] text-[#002113] shadow-lg shadow-[#4edea3]/20' : 'bg-white/[0.04] text-white/20'
-            }`}
-            whileTap={name.trim() ? { scale: 0.98 } : {}}
-          >
-            {loading ? <div className="w-5 h-5 border-2 border-[#002113] border-t-transparent rounded-full animate-spin" /> : <>Get Started <ArrowRight className="w-5 h-5" /></>}
-          </motion.button>
+          {error && <p role="alert" className="border-l-[3px] border-crit bg-crit-wash px-3 py-2 text-sm">{error}</p>}
+          <PrimaryButton type="submit" disabled={busy}>{busy ? <Spinner /> : null}{account ? "Sign in" : "Start reporting"}</PrimaryButton>
+          <button type="button" onClick={() => { setAccount((v) => !v); setError(null); }} className="w-full py-2 text-sm text-ink-2 underline decoration-line-strong underline-offset-4">
+            {account ? "I'm new here" : "I already have an account"}
+          </button>
         </form>
-      </motion.div>
-
-      <div className="flex-1" />
-
-      <p className="text-center text-[11px] text-white/15 pb-8">No account needed · Your reports help fix roads</p>
-    </div>
+        <p className="mt-6 text-xs text-ink-3">Only your name is shown publicly. RoadGuard never asks for your phone number. Demo account: saud / 123.</p>
+      </main>
     </div>
   );
 }
 
-export default function App() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('crackwatch_citizen');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [activeTab, setActiveTab] = useState('map');
+function TabBar({ tab, setTab }) {
+  return (
+    <nav aria-label="RoadGuard sections" className="pb-safe sticky bottom-0 z-[1000] border-t border-line bg-paper/95 backdrop-blur-sm">
+      <ul className="grid grid-cols-5">
+        {TABS.map((t) => {
+          const Icon = t.icon;
+          const active = tab === t.id;
+          if (t.primary) {
+            return (
+              <li key={t.id} className="flex justify-center">
+                <button type="button" onClick={() => setTab(t.id)} aria-current={active ? "page" : undefined}
+                  className={`-mt-5 flex h-16 w-16 flex-col items-center justify-center rounded-full border-4 border-paper bg-paint text-paint-ink shadow-lift transition-transform duration-150 active:scale-95`}>
+                  <Icon className="h-6 w-6" aria-hidden="true" />
+                  <span className="sr-only">{t.label}</span>
+                </button>
+              </li>
+            );
+          }
+          return (
+            <li key={t.id}>
+              <button type="button" onClick={() => setTab(t.id)} aria-current={active ? "page" : undefined}
+                className={`flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] transition-colors duration-150 ${active ? "font-semibold text-ink" : "text-ink-3"}`}>
+                <span className="relative">
+                  <Icon className="h-[22px] w-[22px]" aria-hidden="true" />
+                  {active && <span aria-hidden="true" className="absolute -bottom-1.5 left-1/2 h-[3px] w-5 -translate-x-1/2 bg-paint-deep" />}
+                </span>
+                {t.label}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
 
-  const handleLogout = () => {
-    localStorage.removeItem('crackwatch_citizen');
-    localStorage.removeItem('crackwatch_upvotes');
-    setUser(null);
+export default function App() {
+  const user = useCitizen();
+  const [tab, setTabState] = useState(initialTab);
+  const setTab = (t) => {
+    setTabState(t);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", t);
+    window.history.replaceState({}, "", url);
   };
 
-  if (!user) {
-    return <CitizenLogin onLogin={setUser} />;
-  }
+  useEffect(() => {
+    const titles = { map: "Map", mine: "My reports", report: "Report a road", rewards: "Rewards", ledger: "Public ledger" };
+    document.title = `${titles[tab]} · RoadGuard`;
+  }, [tab]);
 
   return (
-    <div className="h-[100dvh] w-screen bg-[#0a0a0b] flex items-center justify-center overflow-hidden">
-    <div className="h-full w-full sm:h-[90vh] sm:max-h-[900px] sm:w-[420px] sm:rounded-[2.5rem] sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/50 bg-[#131315] flex flex-col overflow-hidden relative">
-      <main className="flex-1 min-h-0 relative">
-        <AnimatePresence mode="wait">
-          {activeTab === 'map' && (
-            <motion.div key="map" className="h-full" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
-              <MapPage userName={user.name} />
-            </motion.div>
-          )}
-          {activeTab === 'navigate' && (
-            <motion.div key="navigate" className="h-full" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              <NavigatePage />
-            </motion.div>
-          )}
-          {activeTab === 'report' && (
-            <motion.div key="report" className="h-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
-              <ReportPage userName={user.name} />
-            </motion.div>
-          )}
-          {activeTab === 'game' && (
-            <motion.div key="game" className="h-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.2 }}>
-              <GamificationPage userName={user?.name} />
-            </motion.div>
-          )}
-          {activeTab === 'stats' && (
-            <motion.div key="stats" className="h-full" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-              <StatsPage />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      <nav className="relative z-50 bg-[#0e0e10] border-t border-white/[0.06] shrink-0">
-        <div className="flex items-stretch">
-          {tabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => tab.id === 'logout' ? handleLogout() : setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-4 relative transition-colors ${tab.id === 'logout' ? 'opacity-60' : ''}`}
-              >
-                {isActive && (
-                  <motion.div layoutId="tab-bg" className="absolute inset-x-2 inset-y-2 rounded-xl bg-[#4edea3]/[0.08]"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }} />
-                )}
-                <tab.icon className={`w-[22px] h-[22px] relative z-10 ${isActive ? 'text-[#4edea3]' : 'text-[#bbcabf]/40'}`} />
-                <span className={`text-[10px] font-semibold relative z-10 ${isActive ? 'text-[#4edea3]' : 'text-[#bbcabf]/40'}`}>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-    </div>
+    <div className="min-h-dvh bg-asphalt sm:grain">
+      <div className="mx-auto flex min-h-dvh max-w-[460px] flex-col bg-paper sm:border-x sm:border-asphalt-line">
+        {!user ? (
+          <Onboarding />
+        ) : (
+          <>
+            <header className="sticky top-0 z-[1000] bg-paper/95 backdrop-blur-sm">
+              <div className="kerb" aria-hidden="true" />
+              <div className="flex h-12 items-center justify-between px-4">
+                <Wordmark size="sm" />
+                <div className="flex items-center gap-2">
+                  <span className="max-w-[9rem] truncate text-sm text-ink-2">{user.name}</span>
+                  <button type="button" onClick={() => setCitizen(null)} aria-label="Sign out" title="Sign out"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-sm text-ink-3 active:bg-paper-3">
+                    <LogOut className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </header>
+            <main className="flex-1">
+              <Suspense fallback={<div className="pt-6"><Skeleton /></div>}>
+                {tab === "map" && <MapScreen user={user} onReport={() => setTab("report")} />}
+                {tab === "report" && <ReportFlow user={user} onTrack={() => setTab("mine")} />}
+                {tab === "mine" && <MineScreen user={user} onReport={() => setTab("report")} />}
+                {tab === "rewards" && <RewardsScreen user={user} />}
+                {tab === "ledger" && <LedgerScreen />}
+              </Suspense>
+            </main>
+            <TabBar tab={tab} setTab={setTab} />
+          </>
+        )}
+      </div>
     </div>
   );
 }

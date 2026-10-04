@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { MapContainer, Marker, TileLayer, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { ringPath } from "@shared/lib/spray.js";
+import { ringPath } from "../lib/spray.js";
 
 const MUMBAI = [19.07, 72.93];
 
@@ -43,7 +43,7 @@ function Fit({ points, selected }) {
  * @param {{points: Array<{id:string, lat:number, lng:number, level:string, status:string, label?:string, count?:number}>,
  *          selected?: string, onSelect?: (id:string)=>void, className?: string, interactive?: boolean}} props
  */
-export default function RoadMap({ points, selected, onSelect, className = "", interactive = true, label = "Map of hazards" }) {
+export default function RoadMap({ points, selected, onSelect, className = "", interactive = true, zoomControl = true, label = "Map of hazards" }) {
   const icons = useMemo(() => {
     const cache = {};
     for (const p of points) {
@@ -63,7 +63,7 @@ export default function RoadMap({ points, selected, onSelect, className = "", in
         center={MUMBAI}
         zoom={11}
         className="rg-map h-full w-full"
-        zoomControl={interactive}
+        zoomControl={interactive && zoomControl}
         scrollWheelZoom={false}
         dragging={interactive}
         attributionControl

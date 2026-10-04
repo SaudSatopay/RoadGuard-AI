@@ -59,3 +59,10 @@ export const ROAD_CLASSES = [
 ];
 
 export const SLA_TARGET_DAYS = { S4: 7, S3: 15, S2: 30, S1: 60 };
+
+/** "Ward K/E" for MCGM wards; "Nerul · NMMC" for nodes of other corporations. */
+export function wardLabel(ward) {
+  if (!ward || !ward.code || ward.code === "—") return "";
+  if (ward.authority === "MCGM") return `Ward ${ward.code}`;
+  return ward.authority ? `${ward.name} · ${ward.authority}` : ward.name;
+}

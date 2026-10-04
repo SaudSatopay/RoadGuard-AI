@@ -1,23 +1,51 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import fs from 'fs'
-import path from 'path'
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
-const certPath = path.resolve(__dirname, '../certs/cert.pem')
-const keyPath = path.resolve(__dirname, '../certs/key.pem')
-const hasSSL = fs.existsSync(certPath) && fs.existsSync(keyPath)
+const here = path.dirname(fileURLToPath(import.meta.url));
+const shared = path.resolve(here, "..", "shared");
+
+// Optional HTTPS so phones on the LAN get camera and GPS access (mkcert certs in ../certs).
+const certFile = path.resolve(here, "..", "certs", "cert.pem");
+const keyFile = path.resolve(here, "..", "certs", "key.pem");
+const https = fs.existsSync(certFile) && fs.existsSync(keyFile)
+  ? { cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }
+  : undefined;
+
+const apiTarget = process.env.ROADGUARD_API || "http://127.0.0.1:8000";
+const proxy = {
+  "/api": { target: apiTarget, changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, "") },
+};
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: {
-    port: 5175,
-    host: true,
-    ...(hasSSL ? {
-      https: {
-        cert: fs.readFileSync(certPath),
-        key: fs.readFileSync(keyPath),
-      }
-    } : {}),
+  resolve: {
+    alias: { "@shared": shared },
+    // Shared components import React and friends; resolve them from this app so there is one copy.
+    dedupe: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet"],
   },
-})
+  optimizeDeps: {
+    include: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet"],
+  },
+  server: { host: true, port: 5175, https, proxy, fs: { allow: [here, shared] } },
+  preview: { host: true, port: 4175, https, proxy },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/leaflet") || id.includes("react-leaflet")) return "map";
+          return undefined;
+        },
+      },
+    },
+  },
+  test: {
+    environment: "jsdom",
+    include: ["src/**/*.test.{js,jsx}"],
+    server: { deps: { inline: [/shared/] } },
+  },
+});

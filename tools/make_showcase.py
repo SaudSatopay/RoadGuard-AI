@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PHOTOS = ROOT / "public" / "showcase"
-OUT = ROOT / "src" / "landing" / "showcase.json"
+OUT = ROOT / "shared" / "data" / "showcase.json"
 ORDER = ["india-003976.jpg", "india-004459.jpg", "india-008636.jpg", "india-000537.jpg", "india-006316.jpg"]
 KEEP = ("id", "code", "class_key", "label", "confidence", "bbox", "bbox_norm", "area_ratio", "geometry",
         "severity", "severity_level", "severity_name", "severity_factors")

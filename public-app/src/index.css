@@ -1,30 +1,25 @@
 @import "tailwindcss";
+@import "../../shared/tokens.css";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "@fontsource/barlow-condensed/800.css";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/jetbrains-mono";
+@import "../../shared/map.css";
 
+@source "../../shared";
+
+/* Phone ergonomics: no zoom-on-focus jumps, no rubber-band refresh inside the app column */
+html,
 body {
-  font-family: 'Inter', sans-serif;
-  background: #131315;
-  color: #e5e1e4;
-  overflow-x: hidden;
-  min-height: 100dvh;
+  overscroll-behavior-y: none;
 }
-
-h1, h2, h3 {
-  font-family: 'Space Grotesk', sans-serif;
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
 }
-
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #131315; }
-::-webkit-scrollbar-thumb { background: #353437; border-radius: 4px; }
-
-/* Leaflet overrides for dark theme */
-.leaflet-container { background: #0e0e10 !important; }
-.leaflet-popup-content-wrapper { background: #1c1b1d !important; color: #e5e1e4 !important; border-radius: 12px !important; border: 1px solid rgba(60,74,66,0.15) !important; }
-.leaflet-popup-tip { background: #1c1b1d !important; }
-.leaflet-popup-close-button { color: #bbcabf !important; }
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}

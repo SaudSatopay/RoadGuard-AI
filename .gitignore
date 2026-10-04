@@ -51,3 +51,8 @@ backend/uploads/
 .roadguard/
 # RoadGuard AI runtime state (store file; regenerates from backend/seed on first start)
 backend/data/
+
+# Ultralytics AMP-check weights and agent worktrees
+training/*.pt
+*.pt.tmp
+.claude/worktrees/

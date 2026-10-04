@@ -29,6 +29,10 @@ export default defineConfig({
       "@shared": path.join(here, "shared"),
     },
   },
+  // Pre-bundle the lazily imported libraries so a first visit to the console never re-optimises React mid-session.
+  optimizeDeps: {
+    include: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet", "@paper-design/shaders-react"],
+  },
   server: { host: true, port: 5173, https, proxy },
   preview: { host: true, port: 4173, https, proxy },
   build: {

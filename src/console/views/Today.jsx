@@ -3,13 +3,13 @@ import { ArrowRight, Camera } from "lucide-react";
 import { Link, navigate } from "@shared/lib/router.js";
 import { mediaUrl, useApi } from "@shared/lib/api.js";
 import { dateLabel, number, rupees } from "@shared/lib/format.js";
-import { defectOf } from "@shared/lib/roadguard.js";
+import { defectOf, wardLabel } from "@shared/lib/roadguard.js";
 import { CodeBadge, SeverityChip, StatusStamp } from "@shared/ui/marks.jsx";
 import { useHazards } from "../data.js";
 import TimelineChart from "../TimelineChart.jsx";
 import { Empty, ErrorState, Loading, PageHead, SectionHead, Stat } from "../ui.jsx";
 
-const RoadMap = lazy(() => import("../RoadMap.jsx"));
+const RoadMap = lazy(() => import("@shared/ui/RoadMap.jsx"));
 
 function SummaryStrip({ s }) {
   return (
@@ -49,7 +49,7 @@ function Worklist({ hazards }) {
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-ink-2">
                   {r?.location_name || "Reported location"}
-                  {h.ward?.code && h.ward.code !== "—" ? ` · Ward ${h.ward.code}` : ""}
+                  {wardLabel(h.ward) ? ` · ${wardLabel(h.ward)}` : ""}
                 </span>
               </span>
               <span className="hidden text-right sm:block">

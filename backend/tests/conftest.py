@@ -17,6 +17,8 @@ _TMP = Path(tempfile.mkdtemp(prefix="roadguard-test-"))
 os.environ["ROADGUARD_DATA_DIR"] = str(_TMP / "data")
 os.environ["ROADGUARD_UPLOAD_DIR"] = str(_TMP / "uploads")
 os.environ["ANTHROPIC_API_KEY"] = ""
+# Tests must not depend on (or fight a training job for) the GPU.
+os.environ.setdefault("ROADGUARD_DEVICE", "cpu")
 sys.path.insert(0, str(BACKEND))
 
 

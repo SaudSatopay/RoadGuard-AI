@@ -6,36 +6,7 @@
 @import "@fontsource/barlow-condensed/800.css";
 @import "@fontsource-variable/instrument-sans";
 @import "@fontsource-variable/jetbrains-mono";
+@import "../shared/map.css";
 
 @source "../shared";
 @source "../tools/hero-poster.js";
-
-/* Leaflet: monochrome OpenStreetMap so the paint marks carry the colour */
-.rg-map .leaflet-tile-pane {
-  filter: grayscale(1) contrast(1.06) brightness(1.04);
-}
-[data-theme="night"] .rg-map .leaflet-tile-pane {
-  filter: grayscale(1) invert(0.92) contrast(0.9) brightness(0.9);
-}
-.rg-map.leaflet-container,
-.rg-map .leaflet-container {
-  background: var(--color-paper-2);
-  font-family: var(--font-sans);
-}
-.rg-map .leaflet-control-attribution {
-  background: color-mix(in oklch, var(--color-paper) 85%, transparent);
-  color: var(--color-ink-3);
-  font-size: 10px;
-}
-.rg-map .leaflet-control-attribution a {
-  color: var(--color-ink-2);
-}
-.rg-map .leaflet-control-zoom a {
-  background: var(--color-sheet);
-  color: var(--color-ink);
-  border-color: var(--color-line);
-}
-.rg-pin {
-  background: transparent;
-  border: 0;
-}

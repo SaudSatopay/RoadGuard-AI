@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { bracketPaths, isLargeArea, ringPath, SHAPE_BY_CODE, ticks } from "../shared/lib/spray.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const SHOWCASE = path.join(here, "..", "src", "landing", "showcase.json");
+const SHOWCASE = path.join(here, "..", "shared", "data", "showcase.json");
 
 function escape(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);

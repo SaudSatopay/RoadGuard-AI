@@ -65,7 +65,7 @@ function Contractors() {
   const { data, error, loading, reload } = useApi("/analytics/wall-of-shame", { refreshMs: 60000 });
   if (loading && !data) return <Loading rows={5} />;
   if (error && !data) return <ErrorState error={error} onRetry={reload} />;
-  const rows = data?.leaderboard || [];
+  const rows = (data?.leaderboard || []).filter((c) => c.negligence_score > 0).slice(0, 8);
   return (
     <ol className="divide-y divide-line border-b border-line">
       {rows.map((c) => (
@@ -115,9 +115,9 @@ export default function Accountability() {
       </section>
       <div className="grid gap-8 lg:grid-cols-2">
         <section aria-labelledby="shame-h">
-          <SectionHead title={<span id="shame-h">Wall of shame</span>} note="contractors, worst first" />
+          <SectionHead title={<span id="shame-h">Wall of shame</span>} note="ward offices, worst first" />
           <div className="mt-1"><Contractors /></div>
-          <p className="mt-2 text-xs text-ink-3">Negligence = severity × days each hazard has stayed open, summed per contractor.</p>
+          <p className="mt-2 text-xs text-ink-3">Negligence = severity × days each hazard has stayed open, summed per ward office. Offices with nothing open are left off.</p>
         </section>
         <section aria-labelledby="forecast-h">
           <SectionHead title={<span id="forecast-h">Likely to fail next</span>} note="days to a pothole" />

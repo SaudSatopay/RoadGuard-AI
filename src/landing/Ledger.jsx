@@ -1,7 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { mediaUrl, useApi } from "@shared/lib/api.js";
 import { ago, number, rupees } from "@shared/lib/format.js";
-import { defectOf } from "@shared/lib/roadguard.js";
+import { defectOf, wardLabel } from "@shared/lib/roadguard.js";
 import { CodeBadge, SeverityChip, StatusStamp } from "@shared/ui/marks.jsx";
 
 function Row({ item }) {
@@ -19,7 +19,7 @@ function Row({ item }) {
         </div>
         <p className="mt-1 truncate text-sm text-ink-2">
           {item.location_name || "Location shared"}
-          {item.ward?.code && item.ward.code !== "—" ? <span className="text-ink-3"> · Ward {item.ward.code}</span> : null}
+          {wardLabel(item.ward) ? <span className="text-ink-3"> · {wardLabel(item.ward)}</span> : null}
         </p>
       </div>
       <span className="hidden font-mono text-xs num text-ink-3 sm:block">{ago(item.timestamp)} ago</span>

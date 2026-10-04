@@ -4,7 +4,7 @@ import MarkedPhoto from "@shared/ui/MarkedPhoto.jsx";
 import { Wordmark } from "@shared/ui/marks.jsx";
 import { api } from "@shared/lib/api.js";
 import { Link, navigate, useSearchParams } from "@shared/lib/router.js";
-import showcase from "../landing/showcase.json";
+import showcase from "@shared/data/showcase.json";
 import { signIn, useSession } from "./session.js";
 import { Spinner } from "./ui.jsx";
 

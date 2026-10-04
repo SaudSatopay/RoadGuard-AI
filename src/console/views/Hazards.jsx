@@ -5,12 +5,12 @@ import { CodeBadge, SeverityChip, StatusStamp } from "@shared/ui/marks.jsx";
 import { api, mediaUrl } from "@shared/lib/api.js";
 import { ago, coords, dateLabel, dateTimeLabel, number, rupees } from "@shared/lib/format.js";
 import { navigate, useSearchParams } from "@shared/lib/router.js";
-import { defectOf, LEVELS, STATUS_FLOW, STATUSES } from "@shared/lib/roadguard.js";
+import { defectOf, LEVELS, STATUS_FLOW, STATUSES, wardLabel } from "@shared/lib/roadguard.js";
 import ComplaintLetter from "../ComplaintLetter.jsx";
 import { nextStatus, useHazards } from "../data.js";
 import { Button, Empty, ErrorState, Loading, PageHead, SectionHead, Segmented, Spinner } from "../ui.jsx";
 
-const RoadMap = lazy(() => import("../RoadMap.jsx"));
+const RoadMap = lazy(() => import("@shared/ui/RoadMap.jsx"));
 
 const FILTERS = [
   { value: "open", label: "Open" },
@@ -39,7 +39,7 @@ function HazardRow({ h, selected }) {
             <span className="truncate text-sm font-medium">{h.worst?.location_name || h.hazard_id}</span>
           </span>
           <span className="mt-0.5 block truncate font-mono text-2xs text-ink-3">
-            {h.hazard_id} · {h.ward?.code && h.ward.code !== "—" ? `Ward ${h.ward.code} · ` : ""}{h.report_count} report{h.report_count === 1 ? "" : "s"}
+            {h.hazard_id} · {wardLabel(h.ward) ? `${wardLabel(h.ward)} · ` : ""}{h.report_count} report{h.report_count === 1 ? "" : "s"}
             {h.days_open != null ? ` · ${Math.floor(h.days_open)} d open` : ""}
           </span>
         </span>

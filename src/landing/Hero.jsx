@@ -7,7 +7,7 @@ import { CodeBadge, SeverityChip } from "@shared/ui/marks.jsx";
 import { api } from "@shared/lib/api.js";
 import { conf, number, rupees } from "@shared/lib/format.js";
 import { Link } from "@shared/lib/router.js";
-import showcase from "./showcase.json";
+import showcase from "@shared/data/showcase.json";
 import facts from "./facts.json";
 import { citizenAppUrl } from "./links.js";
 
