@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-import { useEntrance } from "@shared/lib/motion.js";
 
 const STEPS = [
   {
@@ -49,7 +47,6 @@ function KmStone({ km, className = "" }) {
 }
 
 export default function HowItWorks() {
-  const enter = useEntrance();
   return (
     <section id="how" className="scroll-mt-6 border-t border-line bg-paper-2" aria-labelledby="how-title">
       <div className="mx-auto max-w-[1240px] px-4 py-24 sm:px-6 lg:py-32">
@@ -74,21 +71,14 @@ export default function HowItWorks() {
           <div aria-hidden="true" className="absolute inset-x-0 top-[78px] hidden h-10 bg-asphalt lg:block">
             <div className="lane-dash absolute inset-x-0 top-1/2 -translate-y-1/2 text-chalk opacity-60" />
           </div>
-          {STEPS.map((s, i) => (
-            <motion.li
-              key={s.km}
-              className="relative grid grid-cols-[88px_1fr] items-start gap-x-4 lg:block"
-              initial={enter ? { y: 12 } : false}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ delay: i * 0.06, duration: 0.4, ease: [0.2, 0.7, 0.2, 1] }}
-            >
+          {STEPS.map((s) => (
+            <li key={s.km} className="relative grid grid-cols-[88px_1fr] items-start gap-x-4 lg:block">
               <KmStone km={s.km} className="relative z-[1] mx-[14px] w-[48px] lg:mx-0 lg:w-[58px]" />
               <div className="lg:mt-10">
                 <h3 className="sign text-2xl leading-none">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink-2">{s.text}</p>
               </div>
-            </motion.li>
+            </li>
           ))}
         </ol>
       </div>

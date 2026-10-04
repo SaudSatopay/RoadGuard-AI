@@ -25,8 +25,8 @@ Light first. Inspectors and citizens use this outdoors and in site offices; conc
 | `--color-paint` | `0.865 0.165 92` | `0.865 0.165 92` | Road-marking yellow. Fill only, with asphalt ink on top. Never text on paper. |
 | `--color-paint-ink` | `0.215 0.020 90` | `0.215 0.020 90` | Text on paint |
 | `--color-paint-deep` | `0.640 0.135 85` | `0.865 0.165 92` | Paint as a line on paper (focus halo, chart strokes) |
-| `--color-crit` | `0.565 0.200 27` | `0.680 0.190 27` | S4, rejected, SLA breach |
-| `--color-ok` | `0.560 0.120 155` | `0.720 0.130 155` | Fixed |
+| `--color-crit` | `0.550 0.200 27` | `0.680 0.190 27` | S4, rejected, SLA breach |
+| `--color-ok` | `0.525 0.120 155` | `0.720 0.130 155` | Fixed |
 | `--color-info` | `0.520 0.110 248` | `0.720 0.100 248` | Acknowledged, in progress |
 
 Proportion: ~60 % paper, ~30 % ink and asphalt, ≤ 10 % paint. Paint goes on the primary action, the signature marks, the active nav item, focus halos, and the kerb stripe. Status colours are separate from the accent.

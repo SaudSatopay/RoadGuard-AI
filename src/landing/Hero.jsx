@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import { useEntrance } from "@shared/lib/motion.js";
 import { ArrowRight, ArrowUpRight, Camera, LoaderCircle } from "lucide-react";
 import MarkedPhoto from "@shared/ui/MarkedPhoto.jsx";
@@ -10,8 +9,6 @@ import { Link } from "@shared/lib/router.js";
 import showcase from "@shared/data/showcase.json";
 import facts from "./facts.json";
 import { citizenAppUrl } from "./links.js";
-
-const ease = [0.2, 0.7, 0.2, 1];
 
 function Headline() {
   const reduce = !useEntrance();
@@ -24,12 +21,10 @@ function Headline() {
           {words.map((w) => {
             const i = k++;
             return (
-              <motion.span
+              <span
                 key={w}
-                className="mr-[0.18em] inline-block"
-                initial={reduce ? false : { opacity: 0, y: "0.32em" }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 + i * 0.06, duration: 0.45, ease }}
+                className={`mr-[0.18em] inline-block ${reduce ? "" : "rg-rise"}`}
+                style={reduce ? undefined : { animationDelay: `${0.05 + i * 0.06}s` }}
               >
                 {w === "record." ? (
                   <span className="relative inline-block">
@@ -37,7 +32,7 @@ function Headline() {
                     <span aria-hidden="true" className="absolute -bottom-[0.06em] left-0 right-[0.25em] h-[0.14em] bg-paint" />
                   </span>
                 ) : w}
-              </motion.span>
+              </span>
             );
           })}
         </span>
@@ -123,20 +118,16 @@ export default function Hero() {
         </div>
 
         <div className="lg:col-span-5 lg:col-start-1 lg:row-start-2">
-          <motion.p
-            className="max-w-[34rem] text-lg leading-relaxed text-ink-2"
-            initial={enter ? { opacity: 0 } : false}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.35, duration: 0.4 }}
+          <p
+            className={`max-w-[34rem] text-lg leading-relaxed text-ink-2 ${enter ? "rg-fade-in" : ""}`}
+            style={enter ? { animationDelay: "0.35s", animationDuration: "400ms" } : undefined}
           >
             Photograph a damaged road. RoadGuard marks each pothole and crack the way an inspector would, works out how
             bad it is and what the repair will cost, and keeps the complaint public until the road is fixed.
-          </motion.p>
-          <motion.div
-            className="mt-9 flex flex-wrap items-center gap-3"
-            initial={enter ? { opacity: 0, y: 8 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.35, ease }}
+          </p>
+          <div
+            className={`mt-9 flex flex-wrap items-center gap-3 ${enter ? "rg-fade-in" : ""}`}
+            style={enter ? { animationDelay: "0.45s", animationDuration: "350ms" } : undefined}
           >
             <a
               href={citizenAppUrl()}
@@ -152,7 +143,7 @@ export default function Hero() {
               Inspector console
               <ArrowRight className="h-5 w-5 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>
-          </motion.div>
+          </div>
           <dl className="mt-12 grid max-w-md grid-cols-3 gap-x-6 border-t border-line pt-5">
             <div>
               <dt className="label text-ink-3">Trained on</dt>
@@ -197,14 +188,16 @@ export default function Hero() {
               {item.live ? " · live" : ""}
             </p>
             <div className="flex items-center gap-2">
-              <input ref={fileRef} type="file" accept="image/*" className="sr-only" id="hero-try" onChange={(e) => tryPhoto(e.target.files?.[0])} />
-              <label
-                htmlFor="hero-try"
-                className={`inline-flex h-10 items-center gap-2 rounded-sm border border-line-strong bg-sheet px-3 text-sm font-medium text-ink transition-colors duration-150 [@media(hover:hover)]:hover:border-ink ${busy ? "pointer-events-none opacity-70" : ""}`}
+              <input ref={fileRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(e) => tryPhoto(e.target.files?.[0])} />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={busy}
+                className={`inline-flex h-10 items-center gap-2 rounded-sm border border-line-strong bg-sheet px-3 text-sm font-medium text-ink transition-colors duration-150 [@media(hover:hover)]:hover:border-ink ${busy ? "opacity-70" : ""}`}
               >
                 {busy ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Camera className="h-4 w-4" aria-hidden="true" />}
                 {busy ? "Marking your photo…" : "Try it on your own photo"}
-              </label>
+              </button>
               {own && (
                 <button type="button" onClick={() => setOwn(null)} className="h-10 rounded-sm px-3 text-sm text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-ink">
                   Back to samples
@@ -230,7 +223,7 @@ export default function Hero() {
                   aria-label={`Show ${it.source}`}
                   className={`relative h-12 w-12 overflow-hidden rounded-xs border-2 transition-[border-color,transform] duration-150 ${i === index ? "border-paint-deep" : "border-transparent [@media(hover:hover)]:hover:-translate-y-0.5"}`}
                 >
-                  <img src={it.src} alt="" width="48" height="48" loading="lazy" className="h-full w-full object-cover" />
+                  <img src={it.src.replace("/showcase/", "/showcase/thumbs/")} alt="" width="48" height="48" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

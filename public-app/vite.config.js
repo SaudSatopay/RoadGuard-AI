@@ -25,23 +25,15 @@ export default defineConfig({
   resolve: {
     alias: { "@shared": shared },
     // Shared components import React and friends; resolve them from this app so there is one copy.
-    dedupe: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet"],
+    dedupe: ["react", "react-dom", "lucide-react", "leaflet", "react-leaflet"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet"],
+    include: ["react", "react-dom", "lucide-react", "leaflet", "react-leaflet"],
   },
   server: { host: true, port: 5175, https, proxy, fs: { allow: [here, shared] } },
   preview: { host: true, port: 4175, https, proxy },
   build: {
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules/leaflet") || id.includes("react-leaflet")) return "map";
-          return undefined;
-        },
-      },
-    },
   },
   test: {
     environment: "jsdom",

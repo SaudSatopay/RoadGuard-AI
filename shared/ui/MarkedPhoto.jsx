@@ -1,13 +1,13 @@
 // The Inspector's Mark: a road photograph with RoadGuard's detections sprayed on as paint rings.
 // Used by the landing hero, the console's scan and hazard views, and the citizen report result.
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { useEntrance } from "../lib/motion.js";
 import { defectOf, levelOf } from "../lib/roadguard.js";
 import { conf, rupees } from "../lib/format.js";
 import { bracketPaths, isLargeArea, overspray, ringPath, SHAPE_BY_CODE, ticks } from "../lib/spray.js";
 
 const STROKE = { S1: 2.4, S2: 3.2, S3: 4.2, S4: 4.6 };
+const SWEEP = (prop) => `${prop} 850ms cubic-bezier(0.2, 0.7, 0.2, 1) 250ms`;
 
 function normalise(det, i, width, height) {
   const d = defectOf(det.code || det.class_key || det.label || det.display_name);
@@ -75,26 +75,36 @@ export default function MarkedPhoto({
   }, []);
 
   // Split between "as photographed" (left) and "as surveyed" (right), 0..1
-  const split = useMotionValue(mode === "compare" ? (sweep && !reduce ? 1 : initialSplit) : 0);
-  const [splitPct, setSplitPct] = useState(Math.round(split.get() * 100));
-  const clip = useTransform(split, (v) => `inset(0 0 0 ${(v * 100).toFixed(2)}%)`);
-  const handleLeft = useTransform(split, (v) => `${(v * 100).toFixed(2)}%`);
-  useEffect(() => split.on("change", (v) => setSplitPct(Math.round(v * 100))), [split]);
+  const [split, setSplit] = useState(mode === "compare" ? (sweep && !reduce ? 1 : initialSplit) : 0);
+  const [sweeping, setSweeping] = useState(false);
+  const splitPct = Math.round(split * 100);
 
   useEffect(() => {
     if (mode !== "compare" || !sweep || reduce) return undefined;
-    const controls = animate(split, initialSplit, { delay: 0.25, duration: 0.85, ease: [0.2, 0.7, 0.2, 1] });
-    return () => controls.stop();
-  }, [mode, sweep, reduce, initialSplit, split]);
+    // One orchestrated sweep from the right edge to the resting split; then the handle belongs to the visitor.
+    const raf = requestAnimationFrame(() => {
+      setSweeping(true);
+      setSplit(initialSplit);
+    });
+    const done = setTimeout(() => setSweeping(false), 1200);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(done);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const moveTo = useCallback((v) => {
+    setSweeping(false);
+    setSplit(Math.min(1, Math.max(0, v)));
+  }, []);
 
   const setFromClientX = useCallback(
     (clientX) => {
       const rect = box.current?.getBoundingClientRect();
-      if (!rect) return;
-      split.stop();
-      split.set(Math.min(1, Math.max(0, (clientX - rect.left) / rect.width)));
+      if (rect) moveTo((clientX - rect.left) / rect.width);
     },
-    [split],
+    [moveTo],
   );
 
   const dragging = useRef(false);
@@ -115,11 +125,10 @@ export default function MarkedPhoto({
     const map = { ArrowLeft: -step, ArrowDown: -step, ArrowRight: step, ArrowUp: step };
     if (e.key in map) {
       e.preventDefault();
-      split.stop();
-      split.set(Math.min(1, Math.max(0, split.get() + map[e.key])));
+      moveTo(split + map[e.key]);
     } else if (e.key === "Home" || e.key === "End") {
       e.preventDefault();
-      split.set(e.key === "Home" ? 0 : 1);
+      moveTo(e.key === "Home" ? 0 : 1);
     }
   };
 
@@ -139,9 +148,7 @@ export default function MarkedPhoto({
       <svg className="absolute inset-0 h-full w-full" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <filter id={`spray-${uid}`} x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
-            <feGaussianBlur in="rough" stdDeviation="0.35" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.45" />
           </filter>
         </defs>
         {marks.map((m, i) => {
@@ -151,27 +158,27 @@ export default function MarkedPhoto({
           return (
             <g key={m.id} filter={`url(#spray-${uid})`} style={{ opacity: dim ? 0.3 : 1, transition: "opacity 160ms ease-out" }}>
               {(isLargeArea(m.bbox, width, height) ? bracketPaths(m.bbox, i + 1) : [ringPath(m.bbox, i + 1 + Math.round(m.bbox[0]), m.shape)]).map((d, k) => (
-                <motion.path
+                <path
                   key={k}
                   d={d}
+                  pathLength={1}
                   fill="none"
                   stroke={color}
                   strokeWidth={STROKE[m.level] * Math.max(1, width / 900)}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  initial={reduce ? false : { pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ pathLength: { delay: delay + k * 0.06, duration: 0.42, ease: "easeOut" }, opacity: { delay: delay + k * 0.06, duration: 0.05 } }}
+                  className={reduce ? undefined : "rg-draw"}
+                  style={reduce ? undefined : { animationDelay: `${delay + k * 0.06}s` }}
                 />
               ))}
               {ticks(m.bbox, m.level).map((d, k) => (
-                <motion.path key={k} d={d} fill="none" stroke={color} strokeWidth={3 * Math.max(1, width / 900)} strokeLinecap="round"
-                  initial={reduce ? false : { pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ delay: delay + 0.38 + k * 0.08, duration: 0.18 }} />
+                <path key={k} d={d} pathLength={1} fill="none" stroke={color} strokeWidth={3 * Math.max(1, width / 900)} strokeLinecap="round"
+                  className={reduce ? undefined : "rg-draw"}
+                  style={reduce ? undefined : { animationDelay: `${delay + 0.38 + k * 0.08}s`, animationDuration: "180ms" }} />
               ))}
               {!isLargeArea(m.bbox, width, height) && overspray(m.bbox, i + 3).map((dot, k) => (
-                <motion.circle key={k} cx={dot.x} cy={dot.y} r={dot.r * Math.max(1, width / 900)} fill={color}
-                  initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 0.55 }} transition={{ delay: delay + 0.3, duration: 0.2 }} />
+                <circle key={k} cx={dot.x} cy={dot.y} r={dot.r * Math.max(1, width / 900)} fill={color} opacity={0.55}
+                  className={reduce ? undefined : "rg-fade-in"} style={reduce ? undefined : { animationDelay: `${delay + 0.3}s` }} />
               ))}
             </g>
           );
@@ -201,20 +208,20 @@ export default function MarkedPhoto({
           className="absolute inset-0 h-full w-full object-cover" fetchPriority={priority ? "high" : undefined}
           loading={priority ? "eager" : "lazy"} decoding="async" />
         {mode === "compare" ? (
-          <motion.div className="absolute inset-0" style={{ clipPath: clip }}>
+          <div className="absolute inset-0" style={{ clipPath: `inset(0 0 0 ${(split * 100).toFixed(2)}%)`, transition: sweeping ? SWEEP("clip-path") : "none" }}>
             <img src={src} alt="" aria-hidden="true" width={width} height={height} draggable="false"
               className="absolute inset-0 h-full w-full object-cover [filter:grayscale(0.55)_contrast(1.08)_brightness(0.86)]" />
             {surveyed}
-          </motion.div>
+          </div>
         ) : (
           <div className="absolute inset-0">{surveyed}</div>
         )}
         {mode === "compare" && (
           <>
-            <motion.div className="pointer-events-none absolute inset-y-0 w-0" style={{ left: handleLeft }}>
+            <div className="pointer-events-none absolute inset-y-0 w-0" style={{ left: `${split * 100}%`, transition: sweeping ? SWEEP("left") : "none" }}>
               <div className="absolute inset-y-0 -left-px w-[2px] bg-paint" />
-            </motion.div>
-            <motion.div
+            </div>
+            <div
               role="slider"
               tabIndex={0}
               aria-label="Compare the photo as taken with the survey marks"
@@ -224,12 +231,12 @@ export default function MarkedPhoto({
               aria-valuetext={`${100 - splitPct}% of the frame surveyed`}
               onKeyDown={onKeyDown}
               className="absolute top-1/2 z-10 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize items-center justify-center rounded-full bg-paint text-paint-ink shadow-lift touch-none"
-              style={{ left: handleLeft }}
+              style={{ left: `${split * 100}%`, transition: sweeping ? SWEEP("left") : "none" }}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M7.5 5.5 3 10l4.5 4.5M12.5 5.5 17 10l-4.5 4.5" />
               </svg>
-            </motion.div>
+            </div>
             <span className="pointer-events-none absolute left-3 top-3 label rounded-xs bg-asphalt/80 px-1.5 py-1 text-chalk">As photographed</span>
             <span className="pointer-events-none absolute right-3 top-3 label rounded-xs bg-paint px-1.5 py-1 text-paint-ink">As surveyed</span>
           </>

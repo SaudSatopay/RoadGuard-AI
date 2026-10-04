@@ -95,8 +95,8 @@ export function Wordmark({ size = "md", tone = "ink", className = "" }) {
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <RoadGuardMark size={mark} />
       <span className={`sign ${text} leading-none tracking-[0.02em] ${tone === "chalk" ? "text-chalk" : "text-ink"}`}>
-        RoadGuard
-        <span className="ml-1 inline-block translate-y-[-0.08em] rounded-xs bg-paint px-1 text-[0.62em] leading-[1.25] text-paint-ink align-middle">AI</span>
+        RoadGuard{" "}
+        <span className="ml-0.5 inline-block translate-y-[-0.08em] rounded-xs bg-paint px-1 text-[0.62em] leading-[1.25] text-paint-ink align-middle">AI</span>
       </span>
     </span>
   );

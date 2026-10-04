@@ -31,21 +31,12 @@ export default defineConfig({
   },
   // Pre-bundle the lazily imported libraries so a first visit to the console never re-optimises React mid-session.
   optimizeDeps: {
-    include: ["react", "react-dom", "framer-motion", "lucide-react", "leaflet", "react-leaflet", "@paper-design/shaders-react"],
+    include: ["react", "react-dom", "lucide-react", "leaflet", "react-leaflet", "@paper-design/shaders-react"],
   },
   server: { host: true, port: 5173, https, proxy },
   preview: { host: true, port: 4173, https, proxy },
   build: {
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules/leaflet") || id.includes("react-leaflet")) return "map";
-          if (id.includes("@paper-design")) return "shaders";
-          return undefined;
-        },
-      },
-    },
   },
   test: {
     environment: "jsdom",

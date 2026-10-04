@@ -49,8 +49,8 @@ function PhotoStep({ photo, onPhoto, onNext }) {
           <span className="text-sm text-chalk-2">Opens your camera</span>
         </button>
       )}
-      <input ref={camera} type="file" accept="image/*" capture="environment" className="sr-only" onChange={pick} aria-label="Take a photo" />
-      <input ref={gallery} type="file" accept="image/*" className="sr-only" onChange={pick} aria-label="Choose a photo from your gallery" />
+      <input ref={camera} type="file" accept="image/*" capture="environment" className="sr-only" tabIndex={-1} onChange={pick} aria-label="Take a photo" />
+      <input ref={gallery} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={pick} aria-label="Choose a photo from your gallery" />
       {!photo && (
         <SecondaryButton className="w-full" onClick={() => gallery.current?.click()}><ImagePlus className="h-5 w-5" aria-hidden="true" /> Choose from gallery</SecondaryButton>
       )}
@@ -252,7 +252,9 @@ export default function ReportFlow({ user, onTrack }) {
   const [error, setError] = useState(null);
   const [res, setRes] = useState(null);
 
-  useEffect(() => () => { if (photo?.url) URL.revokeObjectURL(photo.url); }, [photo]);
+  const photoUrl = photo?.url;
+  // Revoke a preview only when it is replaced, not when its dimensions are filled in.
+  useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
 
   function onPhoto(file) {
     if (!file.type.startsWith("image/")) return setError(new Error("That file isn't a photo."));

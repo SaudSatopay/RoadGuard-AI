@@ -35,7 +35,7 @@ function DropZone({ onFile, busy }) {
           <FileUp className="h-5 w-5" aria-hidden="true" /> Choose a photo
         </Button>
       </div>
-      <input ref={input} type="file" accept="image/*" className="sr-only" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} aria-label="Choose a road photo" />
+      <input ref={input} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} aria-label="Choose a road photo" />
     </div>
   );
 }
@@ -265,7 +265,7 @@ function VideoScan() {
           A dashcam clip is sampled about once a second and every frame with damage is kept, with its timestamp.
         </Empty>
       )}
-      <input ref={input} type="file" accept="video/*" className="sr-only" onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} aria-label="Choose a video" />
+      <input ref={input} type="file" accept="video/*" className="sr-only" tabIndex={-1} onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ""; }} aria-label="Choose a video" />
       {error && <ErrorState error={error} title="The video couldn't be read" />}
       {res && (
         <>

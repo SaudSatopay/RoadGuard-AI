@@ -1,7 +1,7 @@
 // The one WebGL moment on the landing page: the RoadGuard ring rendered as liquid aluminium,
 // the metal road signs are made of. Lazy-mounted when scrolled into view; static ring otherwise.
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotionPreference } from "@shared/lib/motion.js";
 
 const LiquidMetal = lazy(() => import("@paper-design/shaders-react").then((m) => ({ default: m.LiquidMetal })));
 
@@ -39,7 +39,7 @@ function Poster({ size }) {
 
 export default function MetalSign({ size = 320 }) {
   const ref = useRef(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionPreference();
   const [visible, setVisible] = useState(false);
   const [canGl] = useState(() => typeof document !== "undefined" && webglAvailable());
 

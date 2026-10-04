@@ -22,6 +22,21 @@ function pinHtml({ level, status, selected, count }) {
     </svg>${badge}</span>`;
 }
 
+const STATUS_WORD = { submitted: "open", acknowledged: "acknowledged", in_progress: "crew assigned", fixed: "fixed" };
+
+function markerName(p) {
+  return [p.label || "Reported hazard", p.level, STATUS_WORD[p.status] || p.status, p.count > 1 ? `${p.count} reports` : null]
+    .filter(Boolean).join(", ");
+}
+
+function NameContainer({ label }) {
+  const map = useMap();
+  useEffect(() => {
+    map.getContainer().setAttribute("aria-label", `${label}. Use the arrow keys to pan and plus or minus to zoom.`);
+  }, [map, label]);
+  return null;
+}
+
 function Fit({ points, selected }) {
   const map = useMap();
   const key = points.map((p) => p.id).join(",");
@@ -74,12 +89,16 @@ export default function RoadMap({ points, selected, onSelect, className = "", in
           maxZoom={19}
         />
         <Fit points={points} selected={selected} />
+        <NameContainer label={label} />
         {points.map((p) => (
           <Marker
             key={p.id}
             position={[p.lat, p.lng]}
             icon={icons[`${p.level}-${p.status}-${p.id === selected}-${p.count || 1}`]}
-            eventHandlers={onSelect ? { click: () => onSelect(p.id) } : undefined}
+            eventHandlers={{
+              add: (e) => e.target.getElement()?.setAttribute("aria-label", markerName(p)),
+              ...(onSelect ? { click: () => onSelect(p.id) } : {}),
+            }}
             keyboard={Boolean(onSelect)}
             title={p.label}
             alt={p.label}

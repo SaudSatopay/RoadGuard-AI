@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useReducedMotion } from "framer-motion";
+
+const REDUCE = "(prefers-reduced-motion: reduce)";
+
+export function prefersReducedMotion() {
+  return typeof window !== "undefined" && Boolean(window.matchMedia?.(REDUCE).matches);
+}
 
 /**
  * Entrance animations only when they can actually play: the visitor hasn't asked for reduced motion and the
@@ -7,9 +12,13 @@ import { useReducedMotion } from "framer-motion";
  * to be read ever waits on an animation frame.
  */
 export function useEntrance() {
-  const reduce = useReducedMotion();
-  const [visible] = useState(() => typeof document === "undefined" || document.visibilityState === "visible");
-  return visible && !reduce;
+  const [ok] = useState(
+    () => typeof document !== "undefined" && document.visibilityState === "visible" && !prefersReducedMotion(),
+  );
+  return ok;
 }
 
-export const EASE_OUT = [0.2, 0.7, 0.2, 1];
+export function useReducedMotionPreference() {
+  const [reduce] = useState(prefersReducedMotion);
+  return reduce;
+}

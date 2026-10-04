@@ -1,0 +1,92 @@
+{
+  "weights": "backend/model/best.pt",
+  "imgsz": 640,
+  "params_m": 11.14,
+  "splits": {
+    "all": {
+      "images": 1674,
+      "map50": 0.635,
+      "map50_95": 0.3421,
+      "precision": 0.6341,
+      "recall": 0.6161,
+      "f1": 0.625,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.5634,
+        "transverse_crack": 0.565,
+        "alligator_crack": 0.7974,
+        "pothole": 0.614
+      }
+    },
+    "India": {
+      "images": 463,
+      "map50": 0.6418,
+      "map50_95": 0.3673,
+      "precision": 0.6942,
+      "recall": 0.5364,
+      "f1": 0.6052,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.6427,
+        "transverse_crack": 0.4314,
+        "alligator_crack": 0.8403,
+        "pothole": 0.6529
+      }
+    },
+    "Japan": {
+      "images": 631,
+      "map50": 0.7984,
+      "map50_95": 0.4509,
+      "precision": 0.7232,
+      "recall": 0.7546,
+      "f1": 0.7386,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.7454,
+        "transverse_crack": 0.695,
+        "alligator_crack": 0.9011,
+        "pothole": 0.852
+      }
+    },
+    "Czech": {
+      "images": 171,
+      "map50": 0.1727,
+      "map50_95": 0.0574,
+      "precision": 0.4351,
+      "recall": 0.1782,
+      "f1": 0.2528,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.2045,
+        "transverse_crack": 0.2764,
+        "alligator_crack": 0.2087,
+        "pothole": 0.0013
+      }
+    },
+    "United_States": {
+      "images": 289,
+      "map50": 0.4559,
+      "map50_95": 0.235,
+      "precision": 0.4733,
+      "recall": 0.5349,
+      "f1": 0.5022,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.6187,
+        "transverse_crack": 0.5643,
+        "alligator_crack": 0.4751,
+        "pothole": 0.1655
+      }
+    },
+    "China_MotorBike": {
+      "images": 120,
+      "map50": 0.2433,
+      "map50_95": 0.0887,
+      "precision": 0.3363,
+      "recall": 0.3226,
+      "f1": 0.3293,
+      "per_class_ap50": {
+        "longitudinal_crack": 0.2042,
+        "transverse_crack": 0.372,
+        "alligator_crack": 0.339,
+        "pothole": 0.058
+      }
+    }
+  },
+  "latency_ms": 10.2
+}
