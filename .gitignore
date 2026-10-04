@@ -36,3 +36,16 @@ backend/shared_store.json
 
 # Local TLS certs (machine-specific, never commit)
 certs/
+
+# RoadGuard AI: training data, runs and downloaded base weights (reproducible via training/*.py)
+training/data/
+training/runs/
+training/weights/
+training/results/val_runs/
+# Missile working files (screenshots, Lighthouse, scorecards)
+.missile/
+# Backend virtual environment and runtime uploads
+backend/.venv/
+backend/uploads/
+# Launcher state
+.roadguard/
