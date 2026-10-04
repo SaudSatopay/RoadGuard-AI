@@ -3,7 +3,7 @@ Duplicate merging: reports of the same physical hazard are clustered with
 DBSCAN (haversine metric, eps = 25 m, min_samples = 1).
 
 The hazard id is stable: "HZ-" + the earliest member report id without its
-"RPT-" prefix. The hazard status is the most advanced status of its reports.
+"RPT-" prefix. The hazard status is the most advanced status of its reports, unless a report filed after the latest repair reopens it.
 """
 
 from __future__ import annotations
@@ -65,6 +65,25 @@ def _worst_report(members: list[dict]) -> dict:
     return max(members, key=key)
 
 
+def _fixed_at(r: dict):
+    if r.get("fix_date"):
+        return parse_ts(r["fix_date"])
+    fixes = [h for h in r.get("status_history") or [] if h.get("status") == "fixed" and h.get("time")]
+    return parse_ts(fixes[-1]["time"]) if fixes else parse_ts(r["timestamp"])
+
+
+def hazard_status(members: list[dict]) -> str:
+    """Most advanced status, except that a report filed after the latest repair reopens the hazard:
+    a pothole that comes back must not hide behind an old "fixed"."""
+    fixed = [m for m in members if m.get("status") == "fixed"]
+    if fixed:
+        latest_fix = max(_fixed_at(m) for m in fixed)
+        reopened = [m for m in members if m.get("status") != "fixed" and parse_ts(m["timestamp"]) > latest_fix]
+        if reopened:
+            return max((m.get("status", "submitted") for m in reopened), key=status_rank)
+    return max((m.get("status", "submitted") for m in members), key=status_rank)
+
+
 def build_hazards(reports: list[dict], eps_m: float = DUPLICATE_RADIUS_M) -> tuple[list[dict], dict[str, str]]:
     """Cluster reports into hazards.
 
@@ -84,7 +103,7 @@ def build_hazards(reports: list[dict], eps_m: float = DUPLICATE_RADIUS_M) -> tup
         ws = worst.get("summary") or {}
         lats = [_coords(m)[0] for m in members]
         lngs = [_coords(m)[1] for m in members]
-        status = max((m.get("status", "submitted") for m in members), key=status_rank)
+        status = hazard_status(members)
         damage_types = []
         for m in members:
             for d in m.get("detections") or []:

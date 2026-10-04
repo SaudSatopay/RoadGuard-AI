@@ -51,3 +51,14 @@ def test_open_duplicate_lookup():
     a["status"] = "fixed"
     hazards, index = build_hazards(reports)
     assert find_open_duplicate(BASE[0] + 12 * M_LAT, BASE[1], reports, hazards, index) is None
+
+
+def test_new_report_after_repair_reopens_hazard():
+    from hazards import hazard_status
+
+    fixed = {"id": "RPT-A", "timestamp": "2026-09-01T10:00:00+00:00", "status": "fixed", "fix_date": "2026-09-05T10:00:00+00:00"}
+    before = {"id": "RPT-B", "timestamp": "2026-09-02T10:00:00+00:00", "status": "submitted"}
+    after = {"id": "RPT-C", "timestamp": "2026-09-20T10:00:00+00:00", "status": "submitted"}
+    assert hazard_status([fixed]) == "fixed"
+    assert hazard_status([fixed, before]) == "fixed"
+    assert hazard_status([fixed, after]) == "submitted"

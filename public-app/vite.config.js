@@ -46,6 +46,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["src/**/*.test.{js,jsx}"],
+    setupFiles: ["./vitest.setup.js"],
     server: { deps: { inline: [/shared/] } },
   },
 });

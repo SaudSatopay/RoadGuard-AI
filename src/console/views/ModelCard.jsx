@@ -95,7 +95,7 @@ export default function ModelCard() {
           <li>RDD2022 is mostly dashcam footage in daylight. Night, rain and close-up phone photos are under-represented, so expect lower recall there.</li>
           <li>Crack length in metres assumes the photo spans one 3.6 m lane; treat it as an estimate, not a survey measurement.</li>
           <li>Rupee estimates come from typical municipal repair rates, not a tender. Deterioration forecasts are rule-based, not learned.</li>
-          <li>Severity uses the road class the reporter chose. A wrong road class shifts the score by up to 12 points.</li>
+          <li>Severity uses the road class the reporter chose. A wrong road class shifts the score by up to 9 points.</li>
         </ul>
       </section>
     </div>

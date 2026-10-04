@@ -37,7 +37,7 @@ def test_severity_rises_with_road_class():
 def test_severity_formula_components():
     d = compute_severity([_det("D40", conf=0.5, bbox=(0, 0, 400, 240))], W, H, "expressway")[0]
     # area 12% -> extent 1.0; one detection -> density 1/6
-    expected = 100 * (0.35 * 1.0 + 0.25 * 1.0 + 0.20 * 1.0 + 0.10 * 0.5 + 0.10 / 6)
+    expected = 100 * (0.30 * 1.0 + 0.30 * 1.0 + 0.15 * 1.0 + 0.15 * 0.5 + 0.10 / 6)
     assert d["severity"] == pytest.approx(expected, abs=0.1)
     assert [f["key"] for f in d["severity_factors"]] == ["type", "extent", "road_class", "confidence", "density"]
     assert sum(f["points"] for f in d["severity_factors"]) == pytest.approx(d["severity"], abs=0.3)

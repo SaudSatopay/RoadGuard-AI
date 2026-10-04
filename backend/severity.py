@@ -4,13 +4,16 @@ Severity model for road defects.
     score = 100 x sum(weight x value), every value in 0..1
 
     factor       weight  value
-    type         0.35    D40 1.0, D20 0.85, D10 0.6, D00 0.5
-    extent       0.25    potholes/alligator: min(1, sqrt(area_ratio / 12))
+    type         0.30    D40 1.0, D20 0.85, D10 0.6, D00 0.5
+    extent       0.30    potholes/alligator: min(1, sqrt(area_ratio / 12))
                          linear cracks: min(1, length_px / (0.6 x image diagonal))
                          (area formula when no crack geometry is available)
-    road class   0.20    expressway 1.0, arterial 0.8, collector 0.6, local 0.4
-    confidence   0.10    detector confidence
+    road class   0.15    expressway 1.0, arterial 0.8, collector 0.6, local 0.4
+    confidence   0.15    detector confidence
     density      0.10    min(1, defects in the photo / 6)
+
+Extent carries as much weight as defect type, so a small pothole is not automatically
+critical; the earlier 0.35/0.25/0.20/0.10 split put most seeded potholes at S4.
 
 Levels: S1 < 40 Minor, S2 40-55 Moderate, S3 55-70 Severe, S4 >= 70 Critical.
 """
@@ -38,7 +41,7 @@ ROAD_CLASSES = {
 }
 DEFAULT_ROAD_CLASS = "arterial"
 
-WEIGHTS = {"type": 0.35, "extent": 0.25, "road_class": 0.20, "confidence": 0.10, "density": 0.10}
+WEIGHTS = {"type": 0.30, "extent": 0.30, "road_class": 0.15, "confidence": 0.15, "density": 0.10}
 
 LEVELS = {
     "S1": {"name": "Minor", "label": "minor"},
