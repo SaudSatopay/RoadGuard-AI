@@ -1,0 +1,93 @@
+[
+  {
+    "id": "kb-municipal-roads",
+    "title": "Municipal corporations maintain roads within their limits",
+    "source": "Mumbai Municipal Corporation Act, 1888; Maharashtra Municipal Corporations Act, 1949",
+    "text": "Maintaining public streets inside city limits is one of the duties of the municipal corporation. Complaints about potholes and damaged roads in a corporation area go to the ward office responsible for that area or to the corporation's online grievance system.",
+    "tags": ["municipal", "corporation", "road", "pothole", "crack", "ward", "MCGM", "NMMC", "PMC", "TMC", "maintenance"]
+  },
+  {
+    "id": "kb-mcgm-1916",
+    "title": "MCGM civic helpline 1916",
+    "source": "Municipal Corporation of Greater Mumbai",
+    "text": "The Municipal Corporation of Greater Mumbai (MCGM, also called BMC) runs a 24x7 civic helpline on 1916. It also takes complaints at its ward offices and through its online complaint portal and app.",
+    "tags": ["MCGM", "BMC", "Mumbai", "helpline", "1916", "ward office", "complaint", "pothole"]
+  },
+  {
+    "id": "kb-mcgm-wards",
+    "title": "MCGM ward offices",
+    "source": "Municipal Corporation of Greater Mumbai",
+    "text": "Greater Mumbai is divided into administrative wards (A to T, with several split into east/west or north/south). Each ward office, headed by an Assistant Commissioner, handles civic works in its area, including local road repairs.",
+    "tags": ["MCGM", "ward", "assistant commissioner", "Mumbai", "road repair"]
+  },
+  {
+    "id": "kb-navi-mumbai",
+    "title": "Navi Mumbai and Panvel civic bodies",
+    "source": "NMMC; Panvel Municipal Corporation",
+    "text": "Navi Mumbai Municipal Corporation (NMMC) covers nodes such as Belapur, Nerul, Vashi, Turbhe, Kopar Khairane, Ghansoli and Airoli. Panvel Municipal Corporation, formed in 2016, covers areas including Kharghar, Kamothe, Kalamboli and Panvel. Some roads in these nodes were built and maintained by CIDCO, so a complaint may need to be copied to CIDCO.",
+    "tags": ["NMMC", "PMC", "Panvel", "Navi Mumbai", "CIDCO", "Kharghar", "Vashi", "Nerul", "Airoli", "ward office"]
+  },
+  {
+    "id": "kb-msrdc",
+    "title": "Expressways run by MSRDC",
+    "source": "Maharashtra State Road Development Corporation",
+    "text": "MSRDC builds and operates several expressways and toll roads in Maharashtra, including the Mumbai–Pune Expressway and the Bandra–Worli Sea Link. Defects on these roads are the responsibility of MSRDC or its operator, not the municipal corporation.",
+    "tags": ["MSRDC", "expressway", "toll road", "highway", "Mumbai-Pune Expressway", "sea link"]
+  },
+  {
+    "id": "kb-nhai-1033",
+    "title": "NHAI national highway helpline 1033",
+    "source": "National Highways Authority of India",
+    "text": "Problems on national highways, including potholes, can be reported to the National Highways Authority of India on its national highway helpline, 1033.",
+    "tags": ["NHAI", "national highway", "helpline", "1033", "expressway", "pothole"]
+  },
+  {
+    "id": "kb-rti-30-days",
+    "title": "RTI Act, 2005: reply within 30 days",
+    "source": "Right to Information Act, 2005, section 7(1)",
+    "text": "Under section 7(1) of the Right to Information Act, 2005, a Public Information Officer must provide the requested information, or reject the request with reasons, within 30 days of receiving it. Citizens can use an RTI application to ask what action was taken on a complaint.",
+    "tags": ["RTI", "right to information", "30 days", "escalation", "action taken", "public information officer"]
+  },
+  {
+    "id": "kb-rts-maharashtra",
+    "title": "Maharashtra Right to Public Services Act, 2015",
+    "source": "Maharashtra Right to Public Services Act, 2015",
+    "text": "The Maharashtra Right to Public Services Act, 2015 requires notified public services to be delivered within a stipulated time, and provides appeals to designated officers when they are not. Whether a particular road repair is a notified service depends on the authority's notification.",
+    "tags": ["Maharashtra", "right to public services", "time-bound", "appeal", "escalation"]
+  },
+  {
+    "id": "kb-aaple-sarkar",
+    "title": "Aaple Sarkar grievance portal",
+    "source": "Government of Maharashtra",
+    "text": "The Government of Maharashtra's Aaple Sarkar portal accepts grievances about state departments and local bodies, and can be used when a complaint to the local office gets no response.",
+    "tags": ["Aaple Sarkar", "Maharashtra", "grievance portal", "escalation", "state"]
+  },
+  {
+    "id": "kb-cpgrams",
+    "title": "CPGRAMS for central government bodies",
+    "source": "Department of Administrative Reforms and Public Grievances",
+    "text": "Grievances about central government bodies, such as the National Highways Authority of India, can be filed on CPGRAMS at pgportal.gov.in.",
+    "tags": ["CPGRAMS", "pgportal", "central government", "NHAI", "escalation", "grievance"]
+  },
+  {
+    "id": "kb-evidence",
+    "title": "What makes a road complaint actionable",
+    "source": "RoadGuard AI guidance",
+    "text": "A complaint is easier to act on when it gives the exact location (GPS coordinates or a landmark), a dated photograph, the type and size of the defect, and how many people have reported it.",
+    "tags": ["evidence", "photo", "GPS", "location", "complaint", "pothole", "crack"]
+  },
+  {
+    "id": "kb-roadguard-targets",
+    "title": "RoadGuard service targets (not government commitments)",
+    "source": "RoadGuard AI",
+    "text": "RoadGuard's own targets, used to measure follow-up on its public ledger: acknowledge a report within 48 hours; fix S4 (critical) defects within 7 days, S3 within 15 days, S2 within 30 days and S1 within 60 days. These are RoadGuard targets, not commitments made by any government body.",
+    "tags": ["RoadGuard", "target", "SLA", "48 hours", "S4", "S3", "S2", "S1", "follow-up"]
+  },
+  {
+    "id": "kb-pothole-safety",
+    "title": "Interim safety for potholes",
+    "source": "RoadGuard AI guidance",
+    "text": "Until a permanent repair is done, a pothole can be made safer by barricading or marking it, especially when water hides its depth during rain.",
+    "tags": ["pothole", "safety", "barricade", "rain", "monsoon", "interim"]
+  }
+]

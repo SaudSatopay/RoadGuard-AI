@@ -1,5 +1,5 @@
 """
-CRACKWATCH Gamification Engine.
+RoadGuard AI gamification engine.
 Leaderboards, achievements, challenges, civic coins, streaks, community verification.
 """
 
@@ -12,33 +12,33 @@ user_profiles: dict[str, dict] = {}
 
 # ── Achievement definitions ──
 ACHIEVEMENTS = {
-    "first_report": {"name": "🕵️ First Report", "desc": "Submit your first damage report", "xp": 50, "coins": 10},
-    "five_reports": {"name": "📸 Scout", "desc": "Submit 5 reports", "xp": 100, "coins": 25},
-    "ten_reports": {"name": "🔥 Road Warrior", "desc": "Submit 10 reports", "xp": 250, "coins": 50},
-    "twenty_five_reports": {"name": "🛠️ Civic Hero", "desc": "Submit 25 reports", "xp": 500, "coins": 100},
-    "fifty_reports": {"name": "🌍 City Saver", "desc": "Submit 50 reports", "xp": 1000, "coins": 250},
-    "fast_reporter": {"name": "⚡ Fast Reporter", "desc": "Submit 3 reports in 1 hour", "xp": 150, "coins": 30},
-    "streak_3": {"name": "🔥 3-Day Streak", "desc": "Report 3 days in a row", "xp": 100, "coins": 20},
-    "streak_7": {"name": "🔥🔥 Week Warrior", "desc": "Report 7 days in a row", "xp": 300, "coins": 75},
-    "streak_30": {"name": "🔥🔥🔥 Legend", "desc": "Report 30 days in a row", "xp": 1000, "coins": 300},
-    "verifier": {"name": "✅ Verifier", "desc": "Verify 5 community reports", "xp": 100, "coins": 20},
-    "critical_finder": {"name": "🚨 Critical Finder", "desc": "Report a critical severity damage", "xp": 200, "coins": 40},
-    "multi_sector": {"name": "🔍 Inspector", "desc": "Report in 3 different sectors", "xp": 150, "coins": 30},
-    "ai_challenger": {"name": "🤖 AI Master", "desc": "Score 80%+ in AI Challenge Mode", "xp": 200, "coins": 50},
+    "first_report": {"name": "First Report", "desc": "Submit your first road report", "xp": 50, "coins": 10},
+    "five_reports": {"name": "Scout", "desc": "Submit 5 reports", "xp": 100, "coins": 25},
+    "ten_reports": {"name": "Road Warden", "desc": "Submit 10 reports", "xp": 250, "coins": 50},
+    "twenty_five_reports": {"name": "Civic Surveyor", "desc": "Submit 25 reports", "xp": 500, "coins": 100},
+    "fifty_reports": {"name": "City Surveyor", "desc": "Submit 50 reports", "xp": 1000, "coins": 250},
+    "fast_reporter": {"name": "Fast Reporter", "desc": "Submit 3 reports in 1 hour", "xp": 150, "coins": 30},
+    "streak_3": {"name": "3-Day Streak", "desc": "Report 3 days in a row", "xp": 100, "coins": 20},
+    "streak_7": {"name": "Week Streak", "desc": "Report 7 days in a row", "xp": 300, "coins": 75},
+    "streak_30": {"name": "Month Streak", "desc": "Report 30 days in a row", "xp": 1000, "coins": 300},
+    "verifier": {"name": "Verifier", "desc": "Verify 5 community reports", "xp": 100, "coins": 20},
+    "critical_finder": {"name": "Critical Finder", "desc": "Report an S4 (critical) defect", "xp": 200, "coins": 40},
+    "multi_sector": {"name": "Inspector", "desc": "Report 3 different defect types", "xp": 150, "coins": 30},
+    "ai_challenger": {"name": "Sharp Eye", "desc": "Score 80%+ in the defect quiz", "xp": 200, "coins": 50},
 }
 
 # ── Challenge definitions ──
 DAILY_CHALLENGES = [
-    {"id": "daily_5", "name": "Report 5 potholes today", "target": 5, "type": "reports", "xp": 100, "coins": 20},
+    {"id": "daily_5", "name": "Report 5 road defects today", "target": 5, "type": "reports", "xp": 100, "coins": 20},
     {"id": "daily_3loc", "name": "Scan 3 different locations", "target": 3, "type": "locations", "xp": 75, "coins": 15},
-    {"id": "daily_worst", "name": "Find a critical severity road", "target": 1, "type": "critical", "xp": 150, "coins": 30},
+    {"id": "daily_worst", "name": "Find an S4 (critical) defect", "target": 1, "type": "critical", "xp": 150, "coins": 30},
     {"id": "daily_verify", "name": "Verify 3 community reports", "target": 3, "type": "verifications", "xp": 75, "coins": 15},
     {"id": "daily_streak", "name": "Maintain your reporting streak", "target": 1, "type": "streak", "xp": 50, "coins": 10},
 ]
 
 WEEKLY_CHALLENGES = [
     {"id": "weekly_20", "name": "Report 20 issues this week", "target": 20, "type": "reports", "xp": 500, "coins": 100},
-    {"id": "weekly_sectors", "name": "Report in all 4 sectors", "target": 4, "type": "sectors", "xp": 300, "coins": 75},
+    {"id": "weekly_sectors", "name": "Report all 4 defect types", "target": 4, "type": "sectors", "xp": 300, "coins": 75},
     {"id": "weekly_impact", "name": "Get 50 total upvotes", "target": 50, "type": "upvotes", "xp": 400, "coins": 80},
 ]
 
@@ -127,10 +127,12 @@ def award_points(user_id: str, report: dict, detections: list) -> dict:
     profile["reports_today"] += 1
     profile["reports_this_hour"].append(now.timestamp())
 
-    # Sector tracking
-    sector = report.get("sector", "road")
+    # Defect-type tracking (kept under the legacy "sectors_reported" name)
     if isinstance(profile["sectors_reported"], set):
-        profile["sectors_reported"].add(sector)
+        for det in detections:
+            code = det.get("code") or det.get("class_name")
+            if code:
+                profile["sectors_reported"].add(code)
 
     # ── Streak calculation ──
     today = now.date().isoformat()
@@ -288,27 +290,20 @@ def community_vote(report_id: str, voter_id: str, vote: str) -> dict:
 
 
 def ai_challenge_round() -> dict:
-    """Generate an AI Challenge Mode round."""
-    # Random damage scenarios
+    """One round of the defect quiz: name the defect from a description."""
     scenarios = [
-        {"image_desc": "Cracked road surface with interconnected pattern", "answer": "Alligator Crack", "severity": "critical"},
-        {"image_desc": "Small round hole in road surface", "answer": "Pothole", "severity": "warning"},
-        {"image_desc": "Long straight crack along the road", "answer": "Longitudinal Crack", "severity": "moderate"},
-        {"image_desc": "Crack running across the road width", "answer": "Transverse Crack", "severity": "moderate"},
-        {"image_desc": "Smooth road with no visible damage", "answer": "Safe", "severity": "none"},
-        {"image_desc": "Concrete surface flaking and peeling", "answer": "Surface Spalling", "severity": "warning"},
-        {"image_desc": "Orange/brown staining on metal bridge surface", "answer": "Corrosion", "severity": "moderate"},
-        {"image_desc": "Water pooling through road crack", "answer": "Water Leak", "severity": "warning"},
+        {"image_desc": "Road surface broken into small interconnected blocks, like a crocodile's back", "answer": "Alligator crack", "severity": "S3"},
+        {"image_desc": "Bowl-shaped hole in the asphalt with broken edges", "answer": "Pothole", "severity": "S4"},
+        {"image_desc": "Long straight crack running along the lane", "answer": "Longitudinal crack", "severity": "S2"},
+        {"image_desc": "Crack running across the full width of the lane", "answer": "Transverse crack", "severity": "S2"},
+        {"image_desc": "Smooth, even asphalt with clear lane markings", "answer": "No defect", "severity": "none"},
     ]
-
     round_data = random.choice(scenarios)
-    options = ["Pothole", "Alligator Crack", "Longitudinal Crack", "Transverse Crack", "Safe", "Surface Spalling", "Corrosion", "Water Leak"]
-    # Ensure answer is in options and pick 3 wrong ones
+    options = ["Pothole", "Alligator crack", "Longitudinal crack", "Transverse crack", "No defect"]
     wrong = [o for o in options if o != round_data["answer"]]
     random.shuffle(wrong)
     choices = [round_data["answer"]] + wrong[:3]
     random.shuffle(choices)
-
     return {
         "scenario": round_data["image_desc"],
         "correct_answer": round_data["answer"],
@@ -370,8 +365,43 @@ def get_authority_fix_streaks(reports: list) -> list:
             "streak": data["consecutive_fixes"],
             "total_fixed": data["total_fixed"],
             "pending": data["pending"],
-            "status": "🔥 On fire!" if data["consecutive_fixes"] >= 5 else "✅ Good" if data["consecutive_fixes"] >= 2 else "⚠️ Needs attention",
+            "status": "On a streak" if data["consecutive_fixes"] >= 5 else "Good" if data["consecutive_fixes"] >= 2 else "Needs attention",
         })
 
     streaks.sort(key=lambda x: x["streak"], reverse=True)
     return streaks
+
+
+DEMO_PROFILES = [
+    ("Saud Vinchu", 3200, 180, 45, 21, ["first_report", "five_reports", "ten_reports", "twenty_five_reports", "streak_3", "streak_7", "critical_finder", "fast_reporter", "multi_sector", "ai_challenger"]),
+    ("Amit Kumar", 2100, 120, 38, 12, ["first_report", "five_reports", "ten_reports", "twenty_five_reports", "streak_3", "streak_7", "critical_finder"]),
+    ("Priya Sharma", 1650, 95, 22, 8, ["first_report", "five_reports", "ten_reports", "streak_3", "fast_reporter", "verifier"]),
+    ("Vikram Thakur", 1400, 80, 28, 15, ["first_report", "five_reports", "ten_reports", "streak_3", "streak_7", "critical_finder"]),
+    ("Rahul Mehta", 1100, 60, 15, 5, ["first_report", "five_reports", "ten_reports", "streak_3"]),
+    ("Anjali Rao", 850, 45, 14, 4, ["first_report", "five_reports", "ten_reports"]),
+    ("Neha Desai", 650, 35, 9, 3, ["first_report", "five_reports"]),
+    ("Kiran Patil", 400, 20, 7, 1, ["first_report", "five_reports"]),
+    ("Dhrupad R.", 300, 15, 5, 2, ["first_report", "five_reports"]),
+    ("Anshika S.", 200, 10, 3, 1, ["first_report"]),
+]
+
+
+def seed_demo_profiles() -> int:
+    """Load demo citizen profiles (deterministic) for the leaderboard."""
+    rng = random.Random(7)
+    today = datetime.now(timezone.utc).date().isoformat()
+    for name, xp, coins, reports, streak, achs in DEMO_PROFILES:
+        profile = get_or_create_profile(name, name)
+        profile.update({
+            "xp": xp,
+            "coins": coins,
+            "total_reports": reports,
+            "streak_days": streak,
+            "achievements": list(achs),
+            "level": calculate_level(xp),
+            "verifications": rng.randint(2, 15),
+            "ai_challenge_score": rng.randint(5, 20),
+            "ai_challenges_played": rng.randint(20, 30),
+            "last_report_date": today,
+        })
+    return len(DEMO_PROFILES)

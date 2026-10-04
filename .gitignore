@@ -49,3 +49,5 @@ backend/.venv/
 backend/uploads/
 # Launcher state
 .roadguard/
+# RoadGuard AI runtime state (store file; regenerates from backend/seed on first start)
+backend/data/

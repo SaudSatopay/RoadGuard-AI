@@ -1,5 +1,5 @@
 """
-Authentication module for CRACKWATCH.
+Authentication for RoadGuard AI.
 JWT-based auth with role-based access (government vs citizen).
 """
 
@@ -7,8 +7,7 @@ import os
 import jwt
 import time
 import secrets
-from datetime import datetime, timezone
-from fastapi import HTTPException, Depends, Request
+from fastapi import HTTPException, Request
 
 # JWT signing secret. Provide JWT_SECRET_KEY via environment in any real
 # deployment. If unset, a random per-process secret is generated so that no
