@@ -1,27 +1,50 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
-import fs from 'fs'
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { heroPoster } from "./tools/hero-poster.js";
 
-const certPath = path.resolve(__dirname, 'certs/cert.pem')
-const keyPath = path.resolve(__dirname, 'certs/key.pem')
-const hasSSL = fs.existsSync(certPath) && fs.existsSync(keyPath)
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+// Optional HTTPS for testing the camera/GPS from a phone on the LAN (mkcert certs in certs/).
+const certFile = path.join(here, "certs", "cert.pem");
+const keyFile = path.join(here, "certs", "key.pem");
+const https = fs.existsSync(certFile) && fs.existsSync(keyFile)
+  ? { cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }
+  : undefined;
+
+// Everything under /api goes to the FastAPI backend, so the browser never needs CORS or certificates for it.
+const apiTarget = process.env.ROADGUARD_API || "http://127.0.0.1:8000";
+const proxy = {
+  "/api": { target: apiTarget, changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, "") },
+};
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), heroPoster()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.join(here, "src"),
+      "@shared": path.join(here, "shared"),
     },
   },
-  server: {
-    host: true,
-    ...(hasSSL ? {
-      https: {
-        cert: fs.readFileSync(certPath),
-        key: fs.readFileSync(keyPath),
-      }
-    } : {}),
+  server: { host: true, port: 5173, https, proxy },
+  preview: { host: true, port: 4173, https, proxy },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/leaflet") || id.includes("react-leaflet")) return "map";
+          if (id.includes("@paper-design")) return "shaders";
+          return undefined;
+        },
+      },
+    },
   },
-})
+  test: {
+    environment: "jsdom",
+    include: ["src/**/*.test.{js,jsx}", "shared/**/*.test.{js,jsx}"],
+  },
+});

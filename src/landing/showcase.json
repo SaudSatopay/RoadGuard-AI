@@ -1,0 +1,387 @@
+{
+ "generated": "2026-10-04",
+ "items": [
+  {
+   "file": "india-003976.jpg",
+   "src": "/showcase/india-003976.jpg",
+   "source": "RDD2022 India test split \u00b7 India_003976",
+   "width": 720,
+   "height": 720,
+   "road_class": "arterial",
+   "model": "provisional (legacy YOLOv8s)",
+   "runtime": "unknown",
+   "inference_ms": 3651.5,
+   "summary": null,
+   "detections": [
+    {
+     "confidence": 0.749,
+     "bbox": [
+      442.4,
+      377.5,
+      719.1,
+      717.6
+     ],
+     "area_ratio": 18.15,
+     "severity": 71.2,
+     "id": "d1",
+     "code": "D20",
+     "label": "Alligator crack",
+     "severity_level": "S4",
+     "cost_estimated": 22489,
+     "repair_method": "Full-depth patching",
+     "class_key": "alligator_crack",
+     "bbox_norm": [
+      0.6144,
+      0.5243,
+      0.9988,
+      0.9967
+     ]
+    },
+    {
+     "confidence": 0.586,
+     "bbox": [
+      6.5,
+      388.7,
+      715.2,
+      719.9
+     ],
+     "area_ratio": 45.28,
+     "severity": 67.2,
+     "id": "d3",
+     "code": "D20",
+     "label": "Alligator crack",
+     "severity_level": "S3",
+     "cost_estimated": 9528,
+     "repair_method": "Routing and sealing",
+     "class_key": "alligator_crack",
+     "bbox_norm": [
+      0.009,
+      0.5399,
+      0.9933,
+      0.9999
+     ]
+    },
+    {
+     "confidence": 0.436,
+     "bbox": [
+      12.0,
+      460.9,
+      276.7,
+      719.5
+     ],
+     "area_ratio": 13.2,
+     "severity": 63.4,
+     "id": "d5",
+     "code": "D00",
+     "label": "Longitudinal crack",
+     "severity_level": "S3",
+     "cost_estimated": 6320,
+     "repair_method": "Routing and sealing",
+     "class_key": "longitudinal_crack",
+     "bbox_norm": [
+      0.0167,
+      0.6401,
+      0.3843,
+      0.9993
+     ]
+    }
+   ]
+  },
+  {
+   "file": "india-004459.jpg",
+   "src": "/showcase/india-004459.jpg",
+   "source": "RDD2022 India test split \u00b7 India_004459",
+   "width": 720,
+   "height": 720,
+   "road_class": "arterial",
+   "model": "provisional (legacy YOLOv8s)",
+   "runtime": "unknown",
+   "inference_ms": 43.2,
+   "summary": null,
+   "detections": [
+    {
+     "confidence": 0.825,
+     "bbox": [
+      122.8,
+      435.5,
+      265.1,
+      533.0
+     ],
+     "area_ratio": 2.68,
+     "severity": 75.1,
+     "id": "d1",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S4",
+     "cost_estimated": 17384,
+     "repair_method": "Full-depth patching",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.1706,
+      0.6049,
+      0.3682,
+      0.7403
+     ]
+    },
+    {
+     "confidence": 0.425,
+     "bbox": [
+      253.7,
+      324.1,
+      566.7,
+      442.4
+     ],
+     "area_ratio": 7.14,
+     "severity": 65.1,
+     "id": "d3",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S3",
+     "cost_estimated": 5714,
+     "repair_method": "Routing and sealing",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.3524,
+      0.4501,
+      0.7871,
+      0.6144
+     ]
+    }
+   ]
+  },
+  {
+   "file": "india-008636.jpg",
+   "src": "/showcase/india-008636.jpg",
+   "source": "RDD2022 India test split \u00b7 India_008636",
+   "width": 720,
+   "height": 720,
+   "road_class": "arterial",
+   "model": "provisional (legacy YOLOv8s)",
+   "runtime": "unknown",
+   "inference_ms": 41.2,
+   "summary": null,
+   "detections": [
+    {
+     "confidence": 0.759,
+     "bbox": [
+      100.5,
+      293.1,
+      720.0,
+      717.6
+     ],
+     "area_ratio": 50.73,
+     "severity": 71.5,
+     "id": "d1",
+     "code": "D20",
+     "label": "Alligator crack",
+     "severity_level": "S4",
+     "cost_estimated": 33240,
+     "repair_method": "Full-depth patching",
+     "class_key": "alligator_crack",
+     "bbox_norm": [
+      0.1396,
+      0.4071,
+      1.0,
+      0.9967
+     ]
+    },
+    {
+     "confidence": 0.631,
+     "bbox": [
+      439.5,
+      248.9,
+      592.2,
+      309.0
+     ],
+     "area_ratio": 1.77,
+     "severity": 64.8,
+     "id": "d4",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S3",
+     "cost_estimated": 5177,
+     "repair_method": "Routing and sealing",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.6104,
+      0.3457,
+      0.8225,
+      0.4292
+     ]
+    }
+   ]
+  },
+  {
+   "file": "india-000537.jpg",
+   "src": "/showcase/india-000537.jpg",
+   "source": "RDD2022 India test split \u00b7 India_000537",
+   "width": 720,
+   "height": 720,
+   "road_class": "arterial",
+   "model": "provisional (legacy YOLOv8s)",
+   "runtime": "unknown",
+   "inference_ms": 36.2,
+   "summary": null,
+   "detections": [
+    {
+     "confidence": 0.688,
+     "bbox": [
+      290.2,
+      499.8,
+      718.4,
+      692.1
+     ],
+     "area_ratio": 15.88,
+     "severity": 69.7,
+     "id": "d2",
+     "code": "D20",
+     "label": "Alligator crack",
+     "severity_level": "S3",
+     "cost_estimated": 6588,
+     "repair_method": "Routing and sealing",
+     "class_key": "alligator_crack",
+     "bbox_norm": [
+      0.4031,
+      0.6942,
+      0.9978,
+      0.9613
+     ]
+    },
+    {
+     "confidence": 0.625,
+     "bbox": [
+      439.2,
+      482.3,
+      476.7,
+      504.4
+     ],
+     "area_ratio": 0.16,
+     "severity": 40.5,
+     "id": "d3",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S2",
+     "cost_estimated": 5016,
+     "repair_method": "Routing and sealing",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.61,
+      0.6699,
+      0.6621,
+      0.7006
+     ]
+    },
+    {
+     "confidence": 0.494,
+     "bbox": [
+      364.1,
+      509.9,
+      491.0,
+      544.0
+     ],
+     "area_ratio": 0.83,
+     "severity": 47.4,
+     "id": "d4",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S2",
+     "cost_estimated": 5083,
+     "repair_method": "Routing and sealing",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.5057,
+      0.7082,
+      0.6819,
+      0.7556
+     ]
+    },
+    {
+     "confidence": 0.332,
+     "bbox": [
+      361.3,
+      451.0,
+      438.3,
+      477.3
+     ],
+     "area_ratio": 0.39,
+     "severity": 36.7,
+     "id": "d5",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S1",
+     "cost_estimated": 1259,
+     "repair_method": "Crack sealing",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.5018,
+      0.6264,
+      0.6088,
+      0.6629
+     ]
+    }
+   ]
+  },
+  {
+   "file": "india-006316.jpg",
+   "src": "/showcase/india-006316.jpg",
+   "source": "RDD2022 India test split \u00b7 India_006316",
+   "width": 720,
+   "height": 720,
+   "road_class": "arterial",
+   "model": "provisional (legacy YOLOv8s)",
+   "runtime": "unknown",
+   "inference_ms": 67.2,
+   "summary": null,
+   "detections": [
+    {
+     "confidence": 0.764,
+     "bbox": [
+      430.8,
+      523.6,
+      681.1,
+      631.8
+     ],
+     "area_ratio": 5.22,
+     "severity": 81.6,
+     "id": "d1",
+     "code": "D40",
+     "label": "Pothole",
+     "severity_level": "S4",
+     "cost_estimated": 18222,
+     "repair_method": "Full-depth patching",
+     "class_key": "pothole",
+     "bbox_norm": [
+      0.5983,
+      0.7272,
+      0.946,
+      0.8775
+     ]
+    },
+    {
+     "confidence": 0.649,
+     "bbox": [
+      421.6,
+      515.7,
+      696.8,
+      636.5
+     ],
+     "area_ratio": 6.41,
+     "severity": 78.7,
+     "id": "d2",
+     "code": "D20",
+     "label": "Alligator crack",
+     "severity_level": "S4",
+     "cost_estimated": 18615,
+     "repair_method": "Full-depth patching",
+     "class_key": "alligator_crack",
+     "bbox_norm": [
+      0.5856,
+      0.7163,
+      0.9678,
+      0.884
+     ]
+    }
+   ]
+  }
+ ]
+}

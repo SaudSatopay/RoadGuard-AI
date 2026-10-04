@@ -1,0 +1,22 @@
+{
+  "provisional": true,
+  "dataset": {
+    "name": "RDD2022 (CRDDC'2022)",
+    "license": "CC BY 4.0",
+    "countries": ["India", "Japan", "Czech", "United States", "China (motorbike)"],
+    "labelled_images": 27823,
+    "train_images": 24482,
+    "val_images": 1667,
+    "test_images": 1674,
+    "classes": 4
+  },
+  "roadguard": null,
+  "legacy": {
+    "name": "CrackWatch YOLOv8s",
+    "params_m": 11.14,
+    "latency_ms": 10.2,
+    "test": { "map50": 0.635, "map50_95": 0.342, "f1": 0.625 },
+    "per_class_ap50": { "longitudinal_crack": null, "transverse_crack": null, "alligator_crack": null, "pothole": null },
+    "per_country_map50": { "India": 0.642, "Japan": 0.798, "Czech": 0.173, "United_States": 0.456, "China_MotorBike": 0.243 }
+  }
+}

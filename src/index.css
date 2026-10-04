@@ -1,132 +1,41 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/space-grotesk";
+@import "../shared/tokens.css";
 
-@custom-variant dark (&:is(.dark *));
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+@import "@fontsource/barlow-condensed/800.css";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource-variable/jetbrains-mono";
 
-@theme inline {
-    --font-heading: 'Space Grotesk Variable', sans-serif;
-    --font-sans: 'Geist Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+@source "../shared";
+@source "../tools/hero-poster.js";
+
+/* Leaflet: monochrome OpenStreetMap so the paint marks carry the colour */
+.rg-map .leaflet-tile-pane {
+  filter: grayscale(1) contrast(1.06) brightness(1.04);
 }
-
-:root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+[data-theme="night"] .rg-map .leaflet-tile-pane {
+  filter: grayscale(1) invert(0.92) contrast(0.9) brightness(0.9);
 }
-
-.dark {
-    /* Stitch "Sovereign Intelligence" Design System */
-    --background: #131315;
-    --foreground: #e5e1e4;
-    --card: #1c1b1d;
-    --card-foreground: #e5e1e4;
-    --popover: #201f22;
-    --popover-foreground: #e5e1e4;
-    --primary: #4edea3;
-    --primary-foreground: #002113;
-    --secondary: #2a2a2c;
-    --secondary-foreground: #e5e1e4;
-    --muted: #201f22;
-    --muted-foreground: #bbcabf;
-    --accent: #1c1b1d;
-    --accent-foreground: #e5e1e4;
-    --destructive: #ffb4ab;
-    --border: rgba(60, 74, 66, 0.15);
-    --input: #353437;
-    --ring: #4edea3;
-    --chart-1: #4edea3;
-    --chart-2: #5de6ff;
-    --chart-3: #ffb95f;
-    --chart-4: #ffb4ab;
-    --chart-5: #353437;
-    --sidebar: #0e0e10;
-    --sidebar-foreground: #e5e1e4;
-    --sidebar-primary: #4edea3;
-    --sidebar-primary-foreground: #002113;
-    --sidebar-accent: #1c1b1d;
-    --sidebar-accent-foreground: #e5e1e4;
-    --sidebar-border: rgba(60, 74, 66, 0.15);
-    --sidebar-ring: #4edea3;
+.rg-map.leaflet-container,
+.rg-map .leaflet-container {
+  background: var(--color-paper-2);
+  font-family: var(--font-sans);
 }
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
-  html {
-    @apply font-sans;
-    }
+.rg-map .leaflet-control-attribution {
+  background: color-mix(in oklch, var(--color-paper) 85%, transparent);
+  color: var(--color-ink-3);
+  font-size: 10px;
+}
+.rg-map .leaflet-control-attribution a {
+  color: var(--color-ink-2);
+}
+.rg-map .leaflet-control-zoom a {
+  background: var(--color-sheet);
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.rg-pin {
+  background: transparent;
+  border: 0;
 }
