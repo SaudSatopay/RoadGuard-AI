@@ -12,12 +12,14 @@ function Row({ item }) {
         {item.image_url && <img src={mediaUrl(item.image_url)} alt="" width="64" height="64" loading="lazy" className="h-full w-full object-cover" />}
       </div>
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <CodeBadge code={d?.code || item.damage_type} />
+        {/* One line at every width: the code badge moves to the place line on phones so the chip never wraps */}
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="hidden shrink-0 sm:inline-flex"><CodeBadge code={d?.code || item.damage_type} /></span>
           <span className="truncate text-sm font-medium text-ink">{d?.label || item.damage_type}</span>
-          <SeverityChip level={item.severity_level} showName={false} />
+          <span className="shrink-0"><SeverityChip level={item.severity_level} showName={false} /></span>
         </div>
         <p className="mt-1 truncate text-sm text-ink-2">
+          {d?.code && <span className="font-mono text-2xs text-ink-3 sm:hidden">{d.code} · </span>}
           {item.location_name || "Location shared"}
           {wardLabel(item.ward) ? <span className="text-ink-3"> · {wardLabel(item.ward)}</span> : null}
         </p>

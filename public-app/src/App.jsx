@@ -67,7 +67,7 @@ function Onboarding() {
           <MarkedPhoto src={SAMPLE.src} width={SAMPLE.width} height={SAMPLE.height} detections={SAMPLE.detections} mode="marks" notes="compact" alt="" />
         </div>
       </div>
-      <main className="flex flex-1 flex-col justify-end px-5 pb-8 pt-8">
+      <main id="citizen-main" className="flex flex-1 flex-col justify-end px-5 pb-8 pt-8">
         <p className="label text-ink-3">For citizens</p>
         <h1 className="mt-3 font-display text-[3.4rem] font-extrabold leading-[0.9]">See a pothole? Put it on the record.</h1>
         <p className="mt-4 text-base text-ink-2">
@@ -152,6 +152,7 @@ export default function App() {
 
   return (
     <div className="min-h-dvh bg-asphalt sm:grain">
+      <a href="#citizen-main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[1100] focus:bg-paint focus:px-3 focus:py-2 focus:text-paint-ink">Skip to content</a>
       <div className="mx-auto flex min-h-dvh max-w-[460px] flex-col bg-paper sm:border-x sm:border-asphalt-line">
         {!user ? (
           <Onboarding />
@@ -170,7 +171,7 @@ export default function App() {
                 </div>
               </div>
             </header>
-            <main className="flex-1">
+            <main id="citizen-main" className="flex-1">
               <Suspense fallback={<div className="pt-6"><Skeleton /></div>}>
                 {tab === "map" && <MapScreen user={user} onReport={() => setTab("report")} />}
                 {tab === "report" && <ReportFlow user={user} onTrack={() => setTab("mine")} />}

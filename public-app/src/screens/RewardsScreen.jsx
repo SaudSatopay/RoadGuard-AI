@@ -160,7 +160,7 @@ export default function RewardsScreen({ user }) {
             return (
               <li key={a.id} className={`rounded-sm border p-3 ${got ? "border-ink bg-paint-wash" : "border-dashed border-line-strong"}`}>
                 <p className="flex items-center gap-1.5 text-sm font-semibold">{!got && <Lock className="h-3.5 w-3.5 text-ink-3" aria-hidden="true" />}{a.name}</p>
-                <p className="mt-0.5 text-xs text-ink-3">{a.description}</p>
+                <p className="mt-0.5 text-xs text-ink-3">{a.description || a.desc}</p>
               </li>
             );
           })}
