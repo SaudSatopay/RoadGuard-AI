@@ -84,16 +84,16 @@ The backend stores reports in a JSON ledger (`backend/data/`), photos in `backen
 
 ## The model
 
-On test photos from the three countries neither model trained on, RoadGuard averages **0.58** mAP@0.5; the hackathon model it replaces averages **0.29**. Its weakest country is India (0.42), the one that matters most for Mumbai, so Indian training data is the first thing to add ([roadmap](ROADMAP.md)).
+Czech, United States and China test photos are the only ones neither model could have trained on: RoadGuard never saw any test photo, and the hackathon model never saw any photo from those three countries. On them RoadGuard averages **0.58** mAP@0.5 and the hackathon model **0.29**. The gap is partly data: RoadGuard trained on other photos from those countries, the hackathon model on none. RoadGuard's weakest country is India (0.42), the one that matters most for Mumbai, so Indian training data is the first thing to add ([roadmap](ROADMAP.md)).
 
 | mAP@0.5 unless noted | **RoadGuard YOLO26s** | CrackWatch YOLOv8s (replaced) |
 |---|---|---|
 | Training data | RDD2022: India, Japan, Czech, United States, China (motorbike) | RDD2022: Japan, India |
-| Czech / United States / China test photos (neither model trained on these countries) | **0.28 / 0.65 / 0.82** | 0.17 / 0.46 / 0.24 |
+| Czech / United States / China test photos (neither model trained on these photos) | **0.28 / 0.65 / 0.82** | 0.17 / 0.46 / 0.24 |
 | India / Japan test photos | 0.42 / 0.56 | 0.64* / 0.80* |
 | All 1,674 held-out test photos | 0.602 | 0.635* |
 | All test photos, mAP@0.5:0.95 | 0.298 | 0.342* |
-| Latency per photo (RTX 5060 Ti) | 12 ms | 10 ms |
+| Latency per photo (RTX 5060 Ti) | 13 ms | 10 ms |
 | Latency per photo, CPU only (ONNX Runtime) | 73 ms | not measured |
 
 \* The old model was trained on RDD2022 Japan and India photos drawn from the same pool as this test split, so its India, Japan and all-photo scores are likely inflated by overlap. RoadGuard never saw a test photo. Full per-class and per-country numbers are on the console's **Model card** page and in `training/results/`.

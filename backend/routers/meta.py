@@ -6,9 +6,18 @@ from fastapi import APIRouter
 
 from config import DUPLICATE_RADIUS_M, SERVICE_NAME, VERSION
 from inference import get_detector, load_model_card, model_ready
+from severity import WEIGHTS
 from store import iso, now_utc
 
 router = APIRouter(tags=["meta"])
+
+_FACTOR_NAMES = {"type": "defect type", "extent": "extent", "road_class": "road class",
+                 "confidence": "confidence", "density": "density"}
+
+
+def severity_recipe() -> str:
+    """The severity weights as the model card states them, read from the model itself so they cannot drift."""
+    return ", ".join(f"{_FACTOR_NAMES[k]} {round(w * 100)}%" for k, w in WEIGHTS.items())
 
 
 @router.get("/")
@@ -34,7 +43,7 @@ async def model():
         "pipeline": [
             f"Detect: {detector['architecture']} finds 4 RDD2022 defect classes at {detector['imgsz']} px",
             "Measure: crack segmenter gives coverage, skeleton length and mean width for crack boxes",
-            "Score: severity from defect type 35%, extent 25%, road class 20%, confidence 10%, density 10%",
+            f"Score: severity from {severity_recipe()}",
             "Price: indicative INR repair range by defect and severity tier",
             "Forecast: rule-based deterioration, 2.5x faster in the monsoon (Jun-Sep)",
             f"Merge: DBSCAN on GPS (haversine, {int(DUPLICATE_RADIUS_M)} m) groups duplicate reports into hazards",

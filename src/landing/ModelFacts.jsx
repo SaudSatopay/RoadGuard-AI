@@ -64,8 +64,8 @@ export default function ModelFacts() {
           <div className="lg:col-span-8">
             <h2 id="model-title" className="font-display text-5xl font-extrabold leading-[0.95] sm:text-6xl">Measured, not claimed</h2>
             <p className="mt-5 max-w-[60ch] text-lg text-ink-2">
-              Both detectors scored on the same {number(facts.dataset.test_images)} RDD2022 photos, held out from training.
-              Mean average precision at 0.5 overlap: higher is better, 1.0 is perfect.
+              Both detectors scored on the same {number(facts.dataset.test_images)} RDD2022 photos, none of which RoadGuard
+              trained on. Mean average precision at 0.5 overlap: higher is better, 1.0 is perfect.
             </p>
           </div>
         </div>
@@ -77,7 +77,8 @@ export default function ModelFacts() {
               <p className="mt-2 font-display text-7xl font-extrabold leading-none num">{fairOurs != null ? fairOurs.toFixed(2) : "—"}</p>
               <p className="mt-2 text-sm text-ink-2">
                 RoadGuard, mean mAP@0.5 over Czech, United States and China test photos. The hackathon model it replaces scores
-                <b className="ml-1 font-mono num text-ink">{fairOld != null ? fairOld.toFixed(2) : "—"}</b> on the same photos.
+                <b className="mx-1 font-mono num text-ink">{fairOld != null ? fairOld.toFixed(2) : "—"}</b>on the same photos. It
+                never saw a photo from these countries; RoadGuard trained on other photos from them.
               </p>
             </div>
             <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-4">
