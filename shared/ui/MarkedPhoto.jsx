@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { useEntrance } from "../lib/motion.js";
 import { defectOf, levelOf } from "../lib/roadguard.js";
 import { conf, rupees } from "../lib/format.js";
+import { defaultSlot, placeNotes } from "../lib/notes.js";
 import { bracketPaths, isLargeArea, overspray, ringPath, SHAPE_BY_CODE, ticks } from "../lib/spray.js";
 
 const STROKE = { S1: 2.4, S2: 3.2, S3: 4.2, S4: 4.6 };
@@ -65,6 +66,10 @@ export default function MarkedPhoto({
   );
   const compact = notes === "compact" || (notes === "auto" && boxWidth > 0 && boxWidth < 520);
   const showNotes = notes !== "none";
+  const placements = useMemo(
+    () => (showNotes ? placeNotes(marks, width, height, boxWidth, compact, mode === "compare" ? initialSplit : 0) : {}),
+    [showNotes, marks, width, height, boxWidth, compact, mode, initialSplit],
+  );
 
   useEffect(() => {
     const el = box.current;
@@ -184,8 +189,12 @@ export default function MarkedPhoto({
           );
         })}
       </svg>
-      {showNotes && marks.map((m) => <FieldNote key={m.id} m={m} width={width} height={height} compact={compact}
-        dim={active && active !== m.id} onEnter={() => setActive(m.id)} onLeave={() => setActive(null)} />)}
+      {showNotes && marks.map((m) => {
+        // A note dropped to avoid a collision still appears, on top, while its defect is highlighted.
+        const slot = placements[m.id] || (active === m.id ? defaultSlot(m, width, height) : null);
+        return slot && <FieldNote key={m.id} m={m} slot={slot} raised={!placements[m.id]} width={width} height={height}
+          compact={compact} dim={active && active !== m.id} onEnter={() => setActive(m.id)} onLeave={() => setActive(null)} />;
+      })}
     </>
   );
 
@@ -249,20 +258,18 @@ export default function MarkedPhoto({
   );
 }
 
-function FieldNote({ m, width, height, compact, dim, onEnter, onLeave }) {
+function FieldNote({ m, slot, raised, width, height, compact, dim, onEnter, onLeave }) {
   const [x1, y1, x2, y2] = m.bbox;
-  const nearTop = y1 / height < 0.14;
-  const anchorRight = x1 / width > 0.62;
   const style = {
-    top: nearTop ? `${(y2 / height) * 100}%` : `${(y1 / height) * 100}%`,
-    transform: nearTop ? "translateY(8px)" : "translateY(calc(-100% - 8px))",
-    ...(anchorRight ? { right: `${(1 - x2 / width) * 100}%` } : { left: `${(x1 / width) * 100}%` }),
+    top: `${((slot.y === "below" ? y2 : y1) / height) * 100}%`,
+    transform: slot.y === "above" ? "translateY(calc(-100% - 8px))" : "translateY(8px)",
+    ...(slot.right ? { right: `${(1 - x2 / width) * 100}%` } : { left: `${(x1 / width) * 100}%` }),
     opacity: dim ? 0.35 : 1,
   };
   const crit = m.level === "S4";
   return (
     <div
-      className={`absolute z-[1] max-w-[70%] rounded-xs px-1.5 py-1 shadow-lift transition-opacity duration-150 ${crit ? "bg-crit text-white" : "bg-paint text-paint-ink"}`}
+      className={`absolute ${raised ? "z-[2]" : "z-[1]"} max-w-[70%] rounded-xs px-1.5 py-1 shadow-lift transition-opacity duration-150 ${crit ? "bg-crit text-white" : "bg-paint text-paint-ink"}`}
       style={style}
       onPointerEnter={onEnter}
       onPointerLeave={onLeave}

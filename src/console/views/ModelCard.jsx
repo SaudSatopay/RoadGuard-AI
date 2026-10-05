@@ -5,6 +5,13 @@ import { ErrorState, Loading, PageHead, SectionHead } from "../ui.jsx";
 
 const CLASS_ORDER = ["longitudinal_crack", "transverse_crack", "alligator_crack", "pothole"];
 const COUNTRY = { India: "India", Japan: "Japan", Czech: "Czech Republic", United_States: "United States", China_MotorBike: "China (motorbike)" };
+// Test photos from countries the previous model never trained on: the only like-for-like comparison.
+const UNSEEN = ["Czech", "United_States", "China_MotorBike"];
+
+function unseenMean(card) {
+  const v = UNSEEN.map((k) => card.per_country?.[k]?.map50 ?? card.per_country_map50?.[k]).filter((x) => x != null);
+  return v.length === UNSEEN.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
 
 function Compare({ label, ours, base }) {
   return (
@@ -33,14 +40,22 @@ export default function ModelCard() {
   const b = det.baseline || {};
   const test = m.test || m;
   const baseTest = b.test || b.metrics?.test || {};
+  const fair = unseenMean(m);
+  const fairBase = unseenMean(b);
+  const fmt = (v, d = 3) => (v != null ? v.toFixed(d) : "—");
   return (
     <div className="space-y-8">
       <PageHead title="Model card" sub={`${det.name || "Detector"} · ${det.runtime || ""}`} />
-      <div className="grid gap-px border-y border-line bg-line sm:grid-cols-2 lg:grid-cols-4 [&>div]:bg-paper [&>div]:px-4 [&>div]:py-4">
-        <div><p className="label text-ink-3">mAP@0.5 · held-out test</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{test.map50 != null ? test.map50.toFixed(3) : "—"}</p><p className="mt-1 text-xs text-ink-3">previous model {baseTest.map50 != null ? baseTest.map50.toFixed(3) : "—"}</p></div>
-        <div><p className="label text-ink-3">mAP@0.5:0.95</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{test.map50_95 != null ? test.map50_95.toFixed(3) : "—"}</p><p className="mt-1 text-xs text-ink-3">previous {baseTest.map50_95 != null ? baseTest.map50_95.toFixed(3) : "—"}</p></div>
-        <div><p className="label text-ink-3">Precision · recall</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{test.precision != null ? `${test.precision.toFixed(2)} · ${test.recall.toFixed(2)}` : "—"}</p><p className="mt-1 text-xs text-ink-3">F1 {test.f1 != null ? test.f1.toFixed(3) : "—"}</p></div>
-        <div><p className="label text-ink-3">Per photo</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{det.latency_ms != null ? Math.round(det.latency_ms) : "—"}<span className="text-xl"> ms</span></p><p className="mt-1 text-xs text-ink-3">{det.params_m ? `${det.params_m} M parameters · ${det.imgsz}px` : ""}</p></div>
+      <div>
+        <div className="grid gap-px border-y border-line bg-line sm:grid-cols-2 lg:grid-cols-4 [&>div]:bg-paper [&>div]:px-4 [&>div]:py-4">
+          <div><p className="label text-ink-3">mAP@0.5 · unseen countries</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{fmt(fair)}</p><p className="mt-1 text-xs text-ink-3">previous model {fmt(fairBase)} · Czech, US and China test photos</p></div>
+          <div><p className="label text-ink-3">mAP@0.5 · all test photos</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{fmt(test.map50)}</p><p className="mt-1 text-xs text-ink-3">mAP@0.5:0.95 {fmt(test.map50_95)} · previous {fmt(baseTest.map50)}*</p></div>
+          <div><p className="label text-ink-3">Precision · recall</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{test.precision != null ? `${test.precision.toFixed(2)} · ${test.recall.toFixed(2)}` : "—"}</p><p className="mt-1 text-xs text-ink-3">F1 {fmt(test.f1)}</p></div>
+          <div><p className="label text-ink-3">Per photo</p><p className="mt-1 font-display text-5xl font-bold leading-none num">{det.latency_ms != null ? Math.round(det.latency_ms) : "—"}<span className="text-xl"> ms</span></p><p className="mt-1 text-xs text-ink-3">{det.params_m ? `${det.params_m} M parameters · ${det.imgsz}px` : ""}{det.cpu_onnx_latency_ms ? ` · ${Math.round(det.cpu_onnx_latency_ms)} ms on CPU` : ""}</p></div>
+        </div>
+        {baseTest.map50 != null && (
+          <p className="mt-2 max-w-[78ch] text-xs text-ink-3">* The previous model trained on RDD2022 India and Japan photos from the same pool as this test split, so its all-photo, India and Japan scores are likely inflated. The unseen-countries figure is the like-for-like comparison.</p>
+        )}
       </div>
 
       <div className="grid gap-10 lg:grid-cols-2">

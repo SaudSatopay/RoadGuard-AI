@@ -4,7 +4,7 @@ Regenerate the landing-page showcase from the running RoadGuard API.
     python tools/make_showcase.py                 # API at http://127.0.0.1:8000
     python tools/make_showcase.py http://127.0.0.1:8010
 
-Sends each photo in public/showcase/ to POST /detect and writes src/landing/showcase.json with
+Sends each photo in public/showcase/ to POST /detect and writes shared/data/showcase.json with
 exactly what the detector returned, so every mark on the landing page is real model output.
 Photos are RDD2022 India test-split images (CC BY 4.0) that the detector never trained on.
 """
@@ -19,7 +19,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PHOTOS = ROOT / "public" / "showcase"
 OUT = ROOT / "shared" / "data" / "showcase.json"
-ORDER = ["india-003976.jpg", "india-004459.jpg", "india-008636.jpg", "india-000537.jpg", "india-006316.jpg"]
+# The first photo opens the landing page (and is baked into its static poster): pick one whose marks read at a glance.
+ORDER = ["india-004459.jpg", "india-006316.jpg", "india-008636.jpg", "india-000537.jpg"]
 KEEP = ("id", "code", "class_key", "label", "confidence", "bbox", "bbox_norm", "area_ratio", "geometry",
         "severity", "severity_level", "severity_name", "severity_factors")
 

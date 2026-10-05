@@ -9,6 +9,7 @@ import { Link } from "@shared/lib/router.js";
 import showcase from "@shared/data/showcase.json";
 import facts from "./facts.json";
 import { citizenAppUrl } from "./links.js";
+import { thumbSrc } from "./showcase.js";
 
 function Headline() {
   const reduce = !useEntrance();
@@ -177,7 +178,7 @@ export default function Hero() {
                   aria-label={`Show ${it.source}`}
                   className={`relative h-12 w-12 shrink-0 overflow-hidden rounded-xs border-2 transition-[border-color,transform] duration-150 ${i === index ? "border-paint-deep" : "border-transparent [@media(hover:hover)]:hover:-translate-y-0.5"}`}
                 >
-                  <img src={it.src.replace("/showcase/", "/showcase/thumbs/")} alt="" width="48" height="48" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <img src={thumbSrc(it)} alt="" width="48" height="48" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
