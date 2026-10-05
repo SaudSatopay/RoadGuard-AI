@@ -10,7 +10,7 @@
    "road_class": "arterial",
    "model": "RoadGuard road-damage detector",
    "runtime": "cuda:0 \u00b7 torch 2.11",
-   "inference_ms": 64.7,
+   "inference_ms": 11.9,
    "summary": {
     "total": 2,
     "by_level": {
@@ -175,7 +175,7 @@
    "road_class": "arterial",
    "model": "RoadGuard road-damage detector",
    "runtime": "cuda:0 \u00b7 torch 2.11",
-   "inference_ms": 17.8,
+   "inference_ms": 11.8,
    "summary": {
     "total": 1,
     "by_level": {
@@ -272,7 +272,7 @@
    "road_class": "arterial",
    "model": "RoadGuard road-damage detector",
    "runtime": "cuda:0 \u00b7 torch 2.11",
-   "inference_ms": 143.0,
+   "inference_ms": 131.4,
    "summary": {
     "total": 1,
     "by_level": {
@@ -375,7 +375,7 @@
    "road_class": "arterial",
    "model": "RoadGuard road-damage detector",
    "runtime": "cuda:0 \u00b7 torch 2.11",
-   "inference_ms": 44.2,
+   "inference_ms": 43.7,
    "summary": {
     "total": 5,
     "by_level": {

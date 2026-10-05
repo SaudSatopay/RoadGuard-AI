@@ -45,6 +45,10 @@ def post_detect(api: str, photo: Path) -> dict:
 
 
 def main(api: str) -> None:
+    # Warm the API first: the first requests after a restart pay for CUDA and model warm-up, and the
+    # landing shows each photo's analysis time.
+    for _ in range(3):
+        post_detect(api, PHOTOS / ORDER[0])
     items = []
     for name in ORDER:
         photo = PHOTOS / name

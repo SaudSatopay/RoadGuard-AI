@@ -42,6 +42,12 @@ function Headline() {
   );
 }
 
+// The compare handle comes to rest just left of the leftmost mark, so every mark is visible on load.
+function restingSplit(item) {
+  const left = Math.min(...item.detections.map((d) => d.bbox[0] / item.width));
+  return Math.min(0.38, Math.max(0.15, left - 0.04));
+}
+
 function Legend({ item }) {
   return (
     <ol className="divide-y divide-line border-y border-line">
@@ -128,7 +134,7 @@ export default function Hero() {
               detections={item.detections}
               mode="compare"
               sweep
-              initialSplit={0.38}
+              initialSplit={restingSplit(item)}
               ruler
               priority
               alt={`Road photograph: ${item.source}`}
@@ -139,7 +145,7 @@ export default function Hero() {
               {item.source}
               <br />
               {item.detections.length} defect{item.detections.length === 1 ? "" : "s"} · {item.model}
-              {item.inference_ms ? ` · ${Math.round(item.inference_ms)} ms` : ""}
+              {item.inference_ms ? ` · analysed in ${Math.round(item.inference_ms)} ms` : ""}
               {item.live ? " · live" : ""}
             </p>
             <div className="flex items-center gap-2">
