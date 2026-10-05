@@ -60,12 +60,13 @@ Severity = 100 x (0.35 type + 0.25 extent + 0.20 road class + 0.10 confidence + 
 {"status": "ok", "service": "RoadGuard AI API", "version": "4.0.0", "model_ready": true, "time": "2026-10-04T15:52:32+00:00"}
 ```
 
-`GET /model` (`trained_on`, `metrics`, `baseline`, `latency_ms`, `evaluated_at` come from `model/model_card.json` when its `detector_file` matches the loaded file, else `null`)
+`GET /model` (`trained_on`, `metrics`, `baseline`, `latency_ms`, `cpu_onnx_latency_ms`, `evaluated_at` come from `model/model_card.json` when its `detector_file` matches the loaded file, else `null`)
 ```json
-{"detector": {"name": "Legacy RDD road-damage detector", "file": "best.pt", "architecture": "YOLOv8s", "params_m": 11.1,
+{"detector": {"name": "RoadGuard road-damage detector", "file": "roadguard_det.pt", "architecture": "YOLO26s", "params_m": 9.95,
   "imgsz": 640, "runtime": "cuda:0 · torch 2.11",
   "classes": [{"id": 0, "code": "D00", "key": "longitudinal_crack", "label": "Longitudinal crack"}, "..."],
-  "trained_on": null, "metrics": null, "baseline": null, "latency_ms": null, "evaluated_at": null},
+  "trained_on": {"dataset": "RDD2022 (CRDDC'2022)", "...": "..."}, "metrics": {"test": {"map50": 0.602, "...": "..."}, "per_country": {"...": "..."}},
+  "baseline": {"name": "CrackWatch YOLOv8s (legacy)", "...": "..."}, "latency_ms": 12.5, "cpu_onnx_latency_ms": 72.8, "evaluated_at": "2026-10-05"},
  "segmenter": {"name": "Crack segmenter", "file": "crack_seg.pt", "use": "Runs only when a crack is detected; ...",
   "metrics": {"mask_map50": 0.634, "box_map50": 0.788}},
  "pipeline": ["Detect: YOLOv8s finds 4 RDD2022 defect classes at 640 px", "..."]}

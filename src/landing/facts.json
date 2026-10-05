@@ -1,22 +1,66 @@
 {
-  "provisional": true,
+  "provisional": false,
   "dataset": {
     "name": "RDD2022 (CRDDC'2022)",
     "license": "CC BY 4.0",
-    "countries": ["India", "Japan", "Czech", "United States", "China (motorbike)"],
+    "countries": [
+      "India",
+      "Japan",
+      "Czech",
+      "United States",
+      "China (motorbike)"
+    ],
     "labelled_images": 27823,
     "train_images": 24482,
     "val_images": 1667,
     "test_images": 1674,
     "classes": 4
   },
-  "roadguard": null,
+  "roadguard": {
+    "name": "YOLO26s",
+    "params_m": 9.95,
+    "latency_ms": 12.5,
+    "cpu_onnx_latency_ms": 72.8,
+    "test": {
+      "map50": 0.602,
+      "map50_95": 0.2985,
+      "f1": 0.5882
+    },
+    "per_class_ap50": {
+      "longitudinal_crack": 0.6102,
+      "transverse_crack": 0.5918,
+      "alligator_crack": 0.6689,
+      "pothole": 0.5372
+    },
+    "per_country_map50": {
+      "India": 0.4164,
+      "Japan": 0.5607,
+      "Czech": 0.2779,
+      "United_States": 0.6469,
+      "China_MotorBike": 0.8233
+    }
+  },
   "legacy": {
     "name": "CrackWatch YOLOv8s",
     "params_m": 11.14,
     "latency_ms": 10.2,
-    "test": { "map50": 0.635, "map50_95": 0.342, "f1": 0.625 },
-    "per_class_ap50": { "longitudinal_crack": null, "transverse_crack": null, "alligator_crack": null, "pothole": null },
-    "per_country_map50": { "India": 0.642, "Japan": 0.798, "Czech": 0.173, "United_States": 0.456, "China_MotorBike": 0.243 }
+    "test": {
+      "map50": 0.635,
+      "map50_95": 0.3421,
+      "f1": 0.625
+    },
+    "per_class_ap50": {
+      "longitudinal_crack": 0.5634,
+      "transverse_crack": 0.565,
+      "alligator_crack": 0.7974,
+      "pothole": 0.614
+    },
+    "per_country_map50": {
+      "India": 0.6418,
+      "Japan": 0.7984,
+      "Czech": 0.1727,
+      "United_States": 0.4559,
+      "China_MotorBike": 0.2433
+    }
   }
 }

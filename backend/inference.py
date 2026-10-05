@@ -372,7 +372,8 @@ def model_ready() -> bool:
 
 def load_model_card(detector_file: str) -> dict:
     """Card fields, used only when the card describes the loaded detector file."""
-    empty = {"trained_on": None, "metrics": None, "baseline": None, "latency_ms": None, "evaluated_at": None}
+    empty = {"trained_on": None, "metrics": None, "baseline": None, "latency_ms": None, "cpu_onnx_latency_ms": None,
+             "evaluated_at": None}
     path = config.MODEL_CARD_FILE
     if not path.exists():
         return empty

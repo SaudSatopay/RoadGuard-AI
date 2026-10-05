@@ -6,8 +6,8 @@ Ship a trained detector to the backend and publish its measured numbers.
 
 Steps
   1. strip optimizer state (89 MB checkpoint -> ~20 MB fp16 weights) -> backend/model/roadguard_det.pt
-  2. export ONNX for CPU-only machines                                  -> backend/model/roadguard_det.onnx
-  3. evaluate RoadGuard and the legacy model on the held-out test split (evaluate.py)
+  2. evaluate RoadGuard and the legacy model on the held-out test split (evaluate.py)
+  3. export ONNX for CPU-only machines                                  -> backend/model/roadguard_det.onnx
   4. write backend/model/model_card.json (served by GET /model) and src/landing/facts.json
 """
 
@@ -67,11 +67,8 @@ def main():
     shutil.copy2(tmp, target)
     print(f"weights -> {target} ({target.stat().st_size / 1e6:.1f} MB)")
 
-    onnx_src = YOLO(str(target)).export(format="onnx", imgsz=640, simplify=True, dynamic=False)
-    onnx_target = MODEL_DIR / "roadguard_det.onnx"
-    shutil.move(onnx_src, onnx_target)
-    print(f"onnx -> {onnx_target} ({onnx_target.stat().st_size / 1e6:.1f} MB)")
-
+    # Evaluate on the GPU before the ONNX export: Ultralytics' CPU export sets CUDA_VISIBLE_DEVICES=-1 for the
+    # rest of this process.
     RESULTS.mkdir(exist_ok=True)
     new_json = RESULTS / "eval_roadguard_yolo26s.json"
     old_json = RESULTS / "eval_legacy_yolov8s.json"
@@ -82,7 +79,12 @@ def main():
     new = json.loads(new_json.read_text())
     old = json.loads(old_json.read_text())
 
-    sample = sorted((HERE / "data" / "rdd2022_yolo" / "images" / "test").glob("India_*.jpg"))[0]
+    onnx_src = YOLO(str(target)).export(format="onnx", imgsz=640, simplify=True, dynamic=False)
+    onnx_target = MODEL_DIR / "roadguard_det.onnx"
+    shutil.move(onnx_src, onnx_target)
+    print(f"onnx -> {onnx_target} ({onnx_target.stat().st_size / 1e6:.1f} MB)")
+
+    sample =sorted((HERE / "data" / "rdd2022_yolo" / "images" / "test").glob("India_*.jpg"))[0]
     onnx_ms = cpu_latency(onnx_target, sample)
     stats = json.loads(STATS.read_text())["per_split"]
     ckpt = getattr(YOLO(str(best)), "ckpt", None) or {}
