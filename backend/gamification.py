@@ -29,11 +29,16 @@ ACHIEVEMENTS = {
 
 # ── Challenge definitions ──
 DAILY_CHALLENGES = [
-    {"id": "daily_5", "name": "Report 5 road defects today", "target": 5, "type": "reports", "xp": 100, "coins": 20},
-    {"id": "daily_3loc", "name": "Scan 3 different locations", "target": 3, "type": "locations", "xp": 75, "coins": 15},
-    {"id": "daily_worst", "name": "Find an S4 (critical) defect", "target": 1, "type": "critical", "xp": 150, "coins": 30},
-    {"id": "daily_verify", "name": "Verify 3 community reports", "target": 3, "type": "verifications", "xp": 75, "coins": 15},
-    {"id": "daily_streak", "name": "Maintain your reporting streak", "target": 1, "type": "streak", "xp": 50, "coins": 10},
+    {"id": "daily_5", "name": "Report 5 road defects today", "description": "Every report filed today counts.",
+     "target": 5, "type": "reports", "xp": 100, "coins": 20},
+    {"id": "daily_3loc", "name": "Report from 3 different places", "description": "Different roads, not the same spot twice.",
+     "target": 3, "type": "locations", "xp": 75, "coins": 15},
+    {"id": "daily_worst", "name": "Find an S4 (critical) defect", "description": "A report the detector rates critical.",
+     "target": 1, "type": "critical", "xp": 150, "coins": 30},
+    {"id": "daily_verify", "name": "Verify 3 community reports", "description": "Confirm or reject reports near you.",
+     "target": 3, "type": "verifications", "xp": 75, "coins": 15},
+    {"id": "daily_streak", "name": "Keep your reporting streak", "description": "File at least one report today.",
+     "target": 1, "type": "streak", "xp": 50, "coins": 10},
 ]
 
 WEEKLY_CHALLENGES = [
@@ -60,12 +65,12 @@ POINT_VALUES = {
 verification_votes: dict[str, list] = {}  # report_id → [{voter, vote, timestamp}]
 
 
-def get_or_create_profile(user_id: str, name: str = "Citizen") -> dict:
-    """Get or create a user gamification profile."""
+def get_or_create_profile(user_id: str, name: str | None = None) -> dict:
+    """Get or create a user gamification profile (citizens are identified by their public name)."""
     if user_id not in user_profiles:
         user_profiles[user_id] = {
             "user_id": user_id,
-            "name": name,
+            "name": name or user_id,
             "xp": 0,
             "coins": 50,  # Starting bonus
             "level": 1,
@@ -76,6 +81,7 @@ def get_or_create_profile(user_id: str, name: str = "Citizen") -> dict:
             "achievements": [],
             "sectors_reported": set(),
             "reports_today": 0,
+            "today": {"date": None, "locations": [], "critical": False},
             "reports_this_hour": [],
             "verifications": 0,
             "upvotes_received": 0,
@@ -92,10 +98,13 @@ def calculate_level(xp: int) -> int:
     return max(1, int(math.sqrt(xp / 100)) + 1)
 
 
-def award_points(user_id: str, report: dict, detections: list) -> dict:
-    """Award points, XP, coins for a valid report. Check achievements."""
+def award_points(user_id: str, report: dict, detections: list, now: datetime | None = None) -> dict:
+    """Award points, XP, coins for a valid report. Check achievements.
+
+    `now` is the report's time; replaying the ledger passes each report's own timestamp.
+    """
     profile = get_or_create_profile(user_id)
-    now = datetime.now(timezone.utc)
+    now = now or datetime.now(timezone.utc)
     points_earned = 0
     coins_earned = 0
     xp_earned = 0
@@ -119,7 +128,18 @@ def award_points(user_id: str, report: dict, detections: list) -> dict:
     xp_earned = max(0, points_earned * 5)
     coins_earned = max(0, points_earned // 2)
 
-    # Update profile
+    # Update profile; the daily counters start again on a new day
+    today = now.date().isoformat()
+    day = profile.setdefault("today", {"date": None, "locations": [], "critical": False})
+    if day["date"] != today:
+        day.update(date=today, locations=[], critical=False)
+        profile["reports_today"] = 0
+    loc = report.get("location") or {}
+    if loc.get("latitude") is not None and loc.get("longitude") is not None:
+        spot = (round(float(loc["latitude"]), 3), round(float(loc["longitude"]), 3))  # about 100 m
+        if spot not in [tuple(s) for s in day["locations"]]:
+            day["locations"].append(spot)
+    day["critical"] = day["critical"] or has_critical
     profile["total_reports"] += 1
     profile["total_points"] += points_earned
     profile["xp"] += xp_earned
@@ -135,7 +155,6 @@ def award_points(user_id: str, report: dict, detections: list) -> dict:
                 profile["sectors_reported"].add(code)
 
     # ── Streak calculation ──
-    today = now.date().isoformat()
     if profile["last_report_date"] != today:
         if profile["last_report_date"]:
             yesterday = (now - timedelta(days=1)).date().isoformat()
@@ -195,8 +214,8 @@ def award_points(user_id: str, report: dict, detections: list) -> dict:
 
 
 def get_leaderboard(top_n: int = 20) -> list:
-    """Get top players by XP."""
-    profiles = list(user_profiles.values())
+    """Get top players by XP (citizens who have reported or scored; opening the Rewards tab alone doesn't count)."""
+    profiles = [p for p in user_profiles.values() if p["total_reports"] or p["xp"]]
     profiles.sort(key=lambda p: p["xp"], reverse=True)
 
     board = []
@@ -233,18 +252,23 @@ def get_daily_challenges(user_id: str) -> list:
     today_idx = datetime.now(timezone.utc).timetuple().tm_yday % len(DAILY_CHALLENGES)
     challenges = DAILY_CHALLENGES[today_idx:today_idx+3] if today_idx + 3 <= len(DAILY_CHALLENGES) else DAILY_CHALLENGES[today_idx:] + DAILY_CHALLENGES[:3-(len(DAILY_CHALLENGES)-today_idx)]
 
+    today = datetime.now(timezone.utc).date().isoformat()
+    day = profile.get("today") or {}
+    is_today = day.get("date") == today
     result = []
     for c in challenges:
         progress = 0
         if c["type"] == "reports":
-            progress = min(profile["reports_today"], c["target"])
-        elif c["type"] == "streak":
-            progress = min(1 if profile["streak_days"] > 0 else 0, 1)
+            progress = profile["reports_today"] if is_today else 0
+        elif c["type"] == "locations":
+            progress = len(day.get("locations", [])) if is_today else 0
         elif c["type"] == "critical":
-            progress = min(1, 1)  # Simplified
+            progress = 1 if is_today and day.get("critical") else 0
+        elif c["type"] == "streak":
+            progress = 1 if profile["last_report_date"] == today else 0
         elif c["type"] == "verifications":
-            progress = min(profile["verifications"], c["target"])
-
+            progress = profile["verifications"]
+        progress = min(progress, c["target"])
         result.append({
             **c,
             "progress": progress,
@@ -372,36 +396,19 @@ def get_authority_fix_streaks(reports: list) -> list:
     return streaks
 
 
-DEMO_PROFILES = [
-    ("Saud Vinchu", 3200, 180, 45, 21, ["first_report", "five_reports", "ten_reports", "twenty_five_reports", "streak_3", "streak_7", "critical_finder", "fast_reporter", "multi_sector", "ai_challenger"]),
-    ("Amit Kumar", 2100, 120, 38, 12, ["first_report", "five_reports", "ten_reports", "twenty_five_reports", "streak_3", "streak_7", "critical_finder"]),
-    ("Priya Sharma", 1650, 95, 22, 8, ["first_report", "five_reports", "ten_reports", "streak_3", "fast_reporter", "verifier"]),
-    ("Vikram Thakur", 1400, 80, 28, 15, ["first_report", "five_reports", "ten_reports", "streak_3", "streak_7", "critical_finder"]),
-    ("Rahul Mehta", 1100, 60, 15, 5, ["first_report", "five_reports", "ten_reports", "streak_3"]),
-    ("Anjali Rao", 850, 45, 14, 4, ["first_report", "five_reports", "ten_reports"]),
-    ("Neha Desai", 650, 35, 9, 3, ["first_report", "five_reports"]),
-    ("Kiran Patil", 400, 20, 7, 1, ["first_report", "five_reports"]),
-    ("Dhrupad R.", 300, 15, 5, 2, ["first_report", "five_reports"]),
-    ("Anshika S.", 200, 10, 3, 1, ["first_report"]),
-]
+def _parse_time(value) -> datetime | None:
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
-def seed_demo_profiles() -> int:
-    """Load demo citizen profiles (deterministic) for the leaderboard."""
-    rng = random.Random(7)
-    today = datetime.now(timezone.utc).date().isoformat()
-    for name, xp, coins, reports, streak, achs in DEMO_PROFILES:
-        profile = get_or_create_profile(name, name)
-        profile.update({
-            "xp": xp,
-            "coins": coins,
-            "total_reports": reports,
-            "streak_days": streak,
-            "achievements": list(achs),
-            "level": calculate_level(xp),
-            "verifications": rng.randint(2, 15),
-            "ai_challenge_score": rng.randint(5, 20),
-            "ai_challenges_played": rng.randint(20, 30),
-            "last_report_date": today,
-        })
-    return len(DEMO_PROFILES)
+def seed_profiles_from_reports(reports: list) -> int:
+    """Rebuild citizen profiles by replaying the ledger, oldest report first, so the leaderboard, XP, streaks and
+    badges agree with the reports actually on record. Returns the number of citizens."""
+    user_profiles.clear()
+    dated = [(t, r) for r in reports if r.get("reporter") and (t := _parse_time(r.get("timestamp")))]
+    for t, r in sorted(dated, key=lambda pair: pair[0]):
+        award_points(r["reporter"], r, r.get("detections") or [], now=t)
+    return len(user_profiles)

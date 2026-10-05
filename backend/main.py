@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from config import SERVICE_NAME, VERSION, log
-from gamification import seed_demo_profiles
+from gamification import seed_profiles_from_reports
 from inference import ModelNotFoundError, get_detector
 from routers import accounts, admin, analytics, detect, meta, reports, whatsapp
 from routers import gamification as gamification_router
@@ -37,7 +37,7 @@ async def lifespan(_app: FastAPI):
         raise
     detector.warmup()
     store.init()
-    seed_demo_profiles()
+    seed_profiles_from_reports(store.reports)
     log(f"Ready: {len(store.reports)} reports on the ledger, detector {detector.det_path.name} "
         f"({detector.runtime_string}).")
     yield

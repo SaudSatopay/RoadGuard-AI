@@ -39,6 +39,17 @@ def test_model(client):
     assert body["segmenter"]["metrics"] == {"mask_map50": 0.634, "box_map50": 0.788}
     assert set(body["segmenter"]) == {"name", "file", "use", "metrics"}
     assert isinstance(body["pipeline"], list) and body["pipeline"]
+    assert "cpu_onnx_latency_ms" in det
+
+
+def test_model_card_states_the_severity_weights_in_use(client):
+    from severity import WEIGHTS
+
+    score = next(p for p in client.get("/model").json()["pipeline"] if p.startswith("Score:"))
+    assert score == "Score: severity from " + ", ".join(
+        f"{name} {round(WEIGHTS[k] * 100)}%" for k, name in
+        [("type", "defect type"), ("extent", "extent"), ("road_class", "road class"), ("confidence", "confidence"), ("density", "density")]
+    )
 
 
 def test_public_map_has_seed_and_no_base64(client):
@@ -208,6 +219,26 @@ def test_reset_demo_restores_seed(client):
     r = client.post("/admin/reset-demo")
     assert r.json() == {"reports": len(seed["reports"])}
     assert client.get("/public/reports/map").json()["total"] == len(seed["reports"])
+
+
+def test_leaderboard_is_built_from_the_ledger(client):
+    from collections import Counter
+
+    from store import store
+
+    client.post("/admin/reset-demo")
+    counts = Counter(r["reporter"] for r in store.reports)
+    board = client.get("/gamification/leaderboard").json()["leaderboard"]
+    assert {row["name"]: row["total_reports"] for row in board} == dict(counts)
+    assert [row["xp"] for row in board] == sorted((row["xp"] for row in board), reverse=True)
+
+
+def test_daily_challenges_are_named_and_start_at_zero(client):
+    challenges = client.get("/gamification/challenges/Someone%20New").json()["challenges"]
+    assert len(challenges) == 3
+    for c in challenges:
+        assert c["name"] and c["description"]
+        assert c["progress"] == 0 and c["completed"] is False
 
 
 def test_compat_endpoints(client):

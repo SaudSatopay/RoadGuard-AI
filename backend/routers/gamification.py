@@ -50,8 +50,9 @@ async def fix_streaks():
 
 @router.post("/gamification/seed-demo")
 async def seed_demo():
-    n = g.seed_demo_profiles()
-    return {"seeded": n, "message": "Demo leaderboard loaded."}
+    store.refresh()
+    n = g.seed_profiles_from_reports(store.reports)
+    return {"seeded": n, "message": "Leaderboard rebuilt from the reports on the ledger."}
 
 
 @router.get("/gamification/achievements")

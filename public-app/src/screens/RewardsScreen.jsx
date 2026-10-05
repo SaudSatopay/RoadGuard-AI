@@ -5,15 +5,19 @@ import { number } from "@shared/lib/format.js";
 import { DEFECTS } from "@shared/lib/roadguard.js";
 import { DefectGlyph } from "@shared/ui/marks.jsx";
 import { ErrorNote, ScreenHead, Skeleton, Spinner } from "../ui.jsx";
+import { CROP_ASPECT, quizCrop } from "./quiz.js";
 
-/** Pick a reported photo with one confident detection to quiz on. */
+/** Pick a reported photo with one confident, reasonably large detection to quiz on. */
 async function pickRound(data) {
   const pool = (data?.reports || []).filter((r) => r.image_url);
   for (let tries = 0; tries < 6 && pool.length; tries += 1) {
     const pick = pool[Math.floor(Math.random() * pool.length)];
     const full = await api(`/public/reports/${encodeURIComponent(pick.id)}`);
-    const det = (full.detections || []).filter((d) => d.confidence >= 0.4).sort((a, b) => b.confidence - a.confidence)[0];
-    if (det && full.image?.width) return { src: mediaUrl(full.image_url), w: full.image.width, h: full.image.height, det };
+    const w = full.image?.width;
+    const h = full.image?.height;
+    const big = (d) => d.bbox[2] - d.bbox[0] >= 0.1 * w && d.bbox[3] - d.bbox[1] >= 0.06 * h;
+    const det = (full.detections || []).filter((d) => d.confidence >= 0.4 && big(d)).sort((a, b) => b.confidence - a.confidence)[0];
+    if (det && w) return { src: mediaUrl(full.image_url), w, h, det };
   }
   return null;
 }
@@ -59,23 +63,22 @@ function SpotTheDefect({ user, onScored }) {
   }
 
   if (reports.error && !reports.data) return <ErrorNote error={reports.error} onRetry={reports.reload} />;
-  if (!round) return <div className="h-48 animate-pulse bg-paper-3" />;
+  if (!round) return <div className="aspect-[1.6] w-full animate-pulse bg-paper-3" />;
+  const crop = quizCrop(round.det.bbox, round.w, round.h);
   const [x1, y1, x2, y2] = round.det.bbox;
-  const pad = 0.18;
-  const bw = x2 - x1;
-  const bh = y2 - y1;
-  const cx1 = Math.max(0, x1 - bw * pad);
-  const cy1 = Math.max(0, y1 - bh * pad);
-  const cw = Math.min(round.w - cx1, bw * (1 + 2 * pad));
-  const ch = Math.min(round.h - cy1, bh * (1 + 2 * pad));
   const correct = answer && answer === round.det.code;
 
   return (
     <div>
-      <div className="relative w-full overflow-hidden rounded-md bg-asphalt" style={{ aspectRatio: `${cw} / ${ch}`, maxHeight: 260 }}>
-        <img src={round.src} alt="A section of a reported road photo"
+      <div className="relative w-full overflow-hidden rounded-md bg-asphalt" style={{ aspectRatio: CROP_ASPECT }}>
+        <img src={round.src} alt="A section of a reported road photo, with the marked defect ringed"
           className="absolute max-w-none"
-          style={{ width: `${(round.w / cw) * 100}%`, left: `${(-cx1 / cw) * 100}%`, top: `${(-cy1 / ch) * 100}%` }} />
+          style={{ width: `${(round.w / crop.w) * 100}%`, left: `${(-crop.x / crop.w) * 100}%`, top: `${(-crop.y / crop.h) * 100}%` }} />
+        {/* Same ring for every class, so the mark shows where to look without giving the answer away */}
+        <svg className="absolute inset-0 h-full w-full" viewBox={`${crop.x} ${crop.y} ${crop.w} ${crop.h}`} preserveAspectRatio="none" aria-hidden="true">
+          <ellipse cx={(x1 + x2) / 2} cy={(y1 + y2) / 2} rx={(x2 - x1) / 2 + crop.w * 0.02} ry={(y2 - y1) / 2 + crop.h * 0.03}
+            fill="none" stroke="var(--color-paint)" strokeWidth={crop.w / 160} strokeDasharray={`${crop.w / 40} ${crop.w / 80}`} />
+        </svg>
       </div>
       <p className="mt-3 text-sm font-medium">What did the detector mark here?</p>
       <div className="mt-2 grid grid-cols-2 gap-2">
@@ -138,11 +141,11 @@ export default function RewardsScreen({ user }) {
         <h2 id="today-h" className="sign border-b-[3px] border-ink pb-1 text-lg">Today</h2>
         <ul className="divide-y divide-line">
           {(challenges.data?.challenges || []).map((c) => (
-            <li key={c.id || c.title} className="flex items-center gap-3 py-3">
+            <li key={c.id || c.name} className="flex items-center gap-3 py-3">
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${c.completed ? "bg-ok text-white" : "border border-line-strong text-ink-3"}`}>
                 {c.completed ? <Check className="h-4 w-4" aria-hidden="true" /> : <span className="font-mono text-xs">{c.progress}/{c.target}</span>}
               </span>
-              <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{c.title}</span><span className="block text-xs text-ink-3">{c.description}</span></span>
+              <span className="min-w-0 flex-1"><span className="block text-sm font-medium">{c.name || c.title}</span>{c.description && <span className="block text-xs text-ink-3">{c.description}</span>}</span>
               <span className="font-mono text-xs text-ink-2">+{c.xp} XP</span>
             </li>
           ))}
@@ -172,7 +175,7 @@ export default function RewardsScreen({ user }) {
             return (
               <li key={r.rank} className={`grid grid-cols-[2rem_1fr_auto] items-center gap-2 py-2.5 ${me ? "bg-paint-wash" : ""}`}>
                 <span className={`font-display text-2xl font-bold num ${r.rank <= 3 ? "text-ink" : "text-ink-3"}`}>{r.rank}</span>
-                <span className="min-w-0"><span className="block truncate text-sm font-medium">{r.name}{me ? " (you)" : ""}</span><span className="block text-xs text-ink-3">{r.total_reports} reports · level {r.level}</span></span>
+                <span className="min-w-0"><span className="block truncate text-sm font-medium">{r.name}{me ? " (you)" : ""}</span><span className="block text-xs text-ink-3">{r.total_reports} report{r.total_reports === 1 ? "" : "s"} · level {r.level}</span></span>
                 <span className="font-mono text-sm num">{number(r.xp)} XP</span>
               </li>
             );

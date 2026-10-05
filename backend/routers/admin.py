@@ -6,6 +6,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Form, HTTPException
 
+from gamification import seed_profiles_from_reports
 from ledger import VALID_STATUSES, admin_map_item, set_status
 from store import store
 
@@ -63,12 +64,15 @@ async def update_status(
 
 @router.post("/admin/reset-demo")
 async def reset_demo():
-    return {"reports": store.reset_to_seed()}
+    n = store.reset_to_seed()
+    seed_profiles_from_reports(store.reports)
+    return {"reports": n}
 
 
 @router.post("/admin/reports/seed-demo")
 async def seed_demo_alias():
     n = store.reset_to_seed()
+    seed_profiles_from_reports(store.reports)
     return {"reports": n, "seeded": n, "total_reports": n, "message": f"Demo ledger restored with {n} reports."}
 
 
