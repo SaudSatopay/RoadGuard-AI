@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import compression from "compression";
 import { heroPoster } from "./tools/hero-poster.js";
 import { inlineCss } from "./tools/inline-css.js";
+import { siteUrl } from "./tools/site-url.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,7 +35,7 @@ const proxy = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), heroPoster(), inlineCss(), previewCompression],
+  plugins: [react(), tailwindcss(), heroPoster(), inlineCss(), siteUrl(), previewCompression],
   resolve: {
     alias: {
       "@": path.join(here, "src"),
