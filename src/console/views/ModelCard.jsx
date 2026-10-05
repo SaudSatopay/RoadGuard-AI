@@ -45,7 +45,9 @@ export default function ModelCard() {
   const fairBase = cleanMean(b);
   const countryMap50 = (k) => m.per_country?.[k]?.map50 ?? m.per_country_map50?.[k];
   const india = countryMap50("India");
-  const elsewhere = Object.keys(COUNTRY).filter((k) => k !== "India").map(countryMap50).filter((x) => x != null);
+  const lowerThanIndia = Object.keys(COUNTRY)
+    .filter((k) => k !== "India" && countryMap50(k) != null && countryMap50(k) < india)
+    .map((k) => `${COUNTRY[k]} (${countryMap50(k).toFixed(2)})`);
   const fmt = (v, d = 3) => (v != null ? v.toFixed(d) : "—");
   return (
     <div className="space-y-8">
@@ -111,8 +113,8 @@ export default function ModelCard() {
       <section aria-labelledby="limits-h">
         <SectionHead title={<span id="limits-h">Limits</span>} />
         <ul className="mt-3 max-w-[78ch] list-disc space-y-1.5 pl-5 text-sm text-ink-2">
-          {india != null && elsewhere.length > 0 && (
-            <li>Weakest on Indian roads, where it matters most: India test mAP@0.5 is {fmt(india, 2)} against {fmt(Math.min(...elsewhere), 2)} to {fmt(Math.max(...elsewhere), 2)} elsewhere, so expect more misses on Mumbai photos than the overall figure suggests.</li>
+          {india != null && (
+            <li>India, where RoadGuard matters most, scores {fmt(india, 2)} mAP@0.5 on held-out photos, {lowerThanIndia.length ? `below every country except ${lowerThanIndia.join(" and ")}` : "its lowest country"}; expect more misses on Mumbai photos than the overall figure suggests.</li>
           )}
           <li>RDD2022 is mostly dashcam footage in daylight. Night, rain and close-up phone photos are under-represented, so expect lower recall there.</li>
           <li>Crack length in metres assumes the photo spans one 3.6 m lane; treat it as an estimate, not a survey measurement.</li>

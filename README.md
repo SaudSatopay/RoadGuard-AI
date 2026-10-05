@@ -84,7 +84,7 @@ The backend stores reports in a JSON ledger (`backend/data/`), photos in `backen
 
 ## The model
 
-Czech, United States and China test photos are the only ones neither model could have trained on: RoadGuard never saw any test photo, and the hackathon model never saw any photo from those three countries. On them RoadGuard averages **0.58** mAP@0.5 and the hackathon model **0.29**. The gap is partly data: RoadGuard trained on other photos from those countries, the hackathon model on none. RoadGuard's weakest country is India (0.42), the one that matters most for Mumbai, so Indian training data is the first thing to add ([roadmap](ROADMAP.md)).
+Czech, United States and China test photos are the only ones neither model could have trained on: RoadGuard never saw any test photo, and the hackathon model never saw any photo from those three countries. On them RoadGuard averages **0.58** mAP@0.5 and the hackathon model **0.29**. The gap is partly data: RoadGuard trained on other photos from those countries, the hackathon model on none. On Indian test photos, the ones that matter for Mumbai, RoadGuard scores 0.42, second-lowest of the five countries after Czech (0.28), so Indian training data is the first thing to add ([roadmap](ROADMAP.md)).
 
 | mAP@0.5 unless noted | **RoadGuard YOLO26s** | CrackWatch YOLOv8s (replaced) |
 |---|---|---|

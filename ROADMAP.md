@@ -9,7 +9,7 @@ What is built is described in the [README](README.md). This is what comes next, 
 - Have inspectors rate drafted complaint letters for correctness and tone.
 
 ## Model
-- Lift India accuracy first (held-out India mAP@0.5 is 0.42, the lowest of the five countries): label Mumbai photos that citizens submit with consent, and weight Indian images up during fine-tuning.
+- Lift India accuracy first (held-out India mAP@0.5 is 0.42, second-lowest of the five countries after Czech at 0.28, and the one that matters for Mumbai): label Mumbai photos that citizens submit with consent, and weight Indian images up during fine-tuning.
 - Train longer and at 800 px for hairline cracks; add night and monsoon photos from Indian roads.
 - Retrain the crack-segmentation model on street-level photos so crack length is available for more detections.
 
