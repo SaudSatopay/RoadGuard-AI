@@ -8,7 +8,10 @@ import { defaultSlot, placeNotes } from "../lib/notes.js";
 import { bracketPaths, isLargeArea, overspray, ringPath, SHAPE_BY_CODE, ticks } from "../lib/spray.js";
 
 const STROKE = { S1: 2.4, S2: 3.2, S3: 4.2, S4: 4.6 };
-const SWEEP = (prop) => `${prop} 650ms cubic-bezier(0.2, 0.7, 0.2, 1) 100ms`;
+// The opening sweep: 500 ms after a 60 ms beat, so the hero has settled within about 0.9 s of mounting.
+const SWEEP_S = 0.5;
+const SWEEP_DELAY_S = 0.06;
+const SWEEP = (prop) => `${prop} ${SWEEP_S * 1000}ms cubic-bezier(0.2, 0.7, 0.2, 1) ${SWEEP_DELAY_S * 1000}ms`;
 
 function normalise(det, i, width, height) {
   const d = defectOf(det.code || det.class_key || det.label || det.display_name);
@@ -91,7 +94,7 @@ export default function MarkedPhoto({
       setSweeping(true);
       setSplit(initialSplit);
     });
-    const done = setTimeout(() => setSweeping(false), 900);
+    const done = setTimeout(() => setSweeping(false), (SWEEP_S + SWEEP_DELAY_S) * 1000 + 100);
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(done);
@@ -142,7 +145,7 @@ export default function MarkedPhoto({
     if (mode === "compare" && sweep) {
       // a mark draws as the handle sweeps past its right edge
       const right = m.bbox[2] / width;
-      return 0.1 + Math.min(1, Math.max(0, (1 - right) / (1 - initialSplit + 0.0001))) * 0.65 * 0.85;
+      return SWEEP_DELAY_S + Math.min(1, Math.max(0, (1 - right) / (1 - initialSplit + 0.0001))) * SWEEP_S * 0.85;
     }
     return 0.1 + i * 0.07;
   };
