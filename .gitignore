@@ -42,7 +42,7 @@ training/data/
 training/runs/
 training/weights/
 training/results/val_runs/
-# Missile working files (screenshots, Lighthouse, scorecards)
+# Local QA working files (screenshots, Lighthouse runs)
 .missile/
 # Backend virtual environment and runtime uploads
 backend/.venv/
@@ -52,7 +52,7 @@ backend/uploads/
 # RoadGuard AI runtime state (store file; regenerates from backend/seed on first start)
 backend/data/
 
-# Ultralytics AMP-check weights and agent worktrees
+# Ultralytics AMP-check weights and local editor tooling
 training/*.pt
 *.pt.tmp
-.claude/worktrees/
+.claude/
