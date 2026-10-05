@@ -5,7 +5,8 @@ Build the RoadGuard AI demo seed from held-out RDD2022 India test images.
 
 1. Runs the current detector (roadguard_det.pt if present, else best.pt) on the
    India test split and keeps photos with at least one detection at >= 0.4
-   confidence, mixing potholes and alligator / longitudinal / transverse cracks.
+   confidence: a spread of severity levels (about a quarter critical), mixing
+   potholes and alligator / longitudinal / transverse cracks within each level.
 2. Saves them (max 960 px wide, JPEG q85) to backend/seed/images/.
 3. Runs the full pipeline on the saved photos and builds reports at real
    Mumbai / Navi Mumbai / Thane road locations with a spread of statuses.
@@ -20,6 +21,7 @@ Images: RDD2022 (Arya et al.), CC BY 4.0, https://doi.org/10.6084/m9.figshare.21
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import random
 import sys
@@ -39,6 +41,12 @@ DEFAULT_SOURCE = BACKEND.parent / "training" / "data" / "rdd2022_yolo" / "images
 RNG_SEED = 2026
 MIN_CONF = 0.4
 MAX_WIDTH = 960
+# Share of photos per worst severity level (scored as if on an arterial road). A city backlog holds more
+# moderate defects than critical ones; picking only the detector's most confident photos would fill the
+# demo with the most obvious damage and make nearly every report critical.
+LEVEL_SHARE = {"S4": 0.25, "S3": 0.30, "S2": 0.30, "S1": 0.15}
+LEVELS = ["S4", "S3", "S2", "S1"]
+CODES = ["D40", "D20", "D00", "D10"]
 
 # lat, lng, name, road_class
 LOCATIONS = [
@@ -117,38 +125,72 @@ def top_code(detections: list[dict]) -> str:
     return max(detections, key=lambda d: d["confidence"])["code"]
 
 
+def level_quotas(count: int) -> dict[str, int]:
+    quotas = {lvl: int(count * share) for lvl, share in LEVEL_SHARE.items()}
+    for lvl in ("S3", "S2", "S4", "S1"):
+        if sum(quotas.values()) >= count:
+            break
+        quotas[lvl] += 1
+    return quotas
+
+
 def select_images(source: Path, count: int) -> list[tuple[Path, str, float]]:
-    """Pick `count` photos with a confident detection, round-robin across defect types."""
+    """Pick `count` photos with a confident detection: a spread of severity levels, round-robin across
+    defect types within each level, interleaved so neighbouring locations get different levels."""
     files = sorted(source.glob("India_*.jpg"))
     if not files:
         raise SystemExit(f"No India_*.jpg images found in {source}")
-    buckets: dict[str, list[tuple[Path, str, float]]] = {"D40": [], "D20": [], "D00": [], "D10": []}
+    buckets: dict[tuple[str, str], list[tuple[Path, str, float]]] = {(lv, c): [] for lv in LEVELS for c in CODES}
     for i, f in enumerate(files):
-        res = analyze(load_image(f.read_bytes()), 0.25, "arterial")
+        res = analyze(load_image(prepare(f)), config.REPORT_CONFIDENCE, "arterial")
         strong = [d for d in res["detections"] if d["confidence"] >= MIN_CONF]
         if strong:
             code = top_code(strong)
-            buckets[code].append((f, code, max(d["confidence"] for d in strong)))
+            buckets[(res["summary"]["worst_level"], code)].append((f, code, max(d["confidence"] for d in strong)))
         if (i + 1) % 100 == 0:
             print(f"  scanned {i + 1}/{len(files)}")
-    for code in buckets:
-        buckets[code].sort(key=lambda t: (-t[2], t[0].name))
-    print("  candidates per type:", {k: len(v) for k, v in buckets.items()})
-    order = ["D40", "D20", "D00", "D10"]
+    for key in buckets:
+        buckets[key].sort(key=lambda t: (-t[2], t[0].name))
+    print("  candidates per level:", {lv: sum(len(buckets[(lv, c)]) for c in CODES) for lv in LEVELS},
+          "per type:", {c: sum(len(buckets[(lv, c)]) for lv in LEVELS) for c in CODES})
+
+    def take(level: str, n: int) -> list[tuple[Path, str, float]]:
+        got: list[tuple[Path, str, float]] = []
+        while len(got) < n and any(buckets[(level, c)] for c in CODES):
+            for c in CODES:
+                if buckets[(level, c)] and len(got) < n:
+                    got.append(buckets[(level, c)].pop(0))
+        return got
+
+    picked = {lv: take(lv, q) for lv, q in level_quotas(count).items()}
+    # A level with too few candidates is made up from the middle levels first, critical last.
+    for lv in ("S3", "S2", "S1", "S4"):
+        short = count - sum(len(v) for v in picked.values())
+        if short <= 0:
+            break
+        picked[lv] += take(lv, short)
     chosen: list[tuple[Path, str, float]] = []
-    while len(chosen) < count and any(buckets.values()):
-        for code in order:
-            if buckets[code] and len(chosen) < count:
-                chosen.append(buckets[code].pop(0))
+    while any(picked.values()):
+        for lv in LEVELS:
+            if picked[lv]:
+                chosen.append(picked[lv].pop(0))
     return chosen
 
 
-def save_seed_image(src: Path, dest_dir: Path) -> Path:
+def prepare(src: Path) -> bytes:
+    """The photo exactly as the seed stores it (at most MAX_WIDTH wide, JPEG q85), so selection scores
+    the same pixels the report is built from."""
     img = load_image(src.read_bytes())
     if img.width > MAX_WIDTH:
         img = img.resize((MAX_WIDTH, round(img.height * MAX_WIDTH / img.width)), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return buf.getvalue()
+
+
+def save_seed_image(src: Path, dest_dir: Path) -> Path:
     dest = dest_dir / src.name
-    img.save(dest, format="JPEG", quality=85)
+    dest.write_bytes(prepare(src))
     return dest
 
 
@@ -176,9 +218,7 @@ def offset(lat: float, lng: float, north_m: float, east_m: float) -> tuple[float
 
 def build_report(rid: str, img_path: Path, lat: float, lng: float, name: str, road_class: str,
                  status: str, hours_ago: float, reporter: str, rng: random.Random) -> dict:
-    with Image.open(img_path) as im:
-        image = im.convert("RGB")
-    res = analyze(image, config.REPORT_CONFIDENCE, road_class)
+    res = analyze(load_image(img_path.read_bytes()), config.REPORT_CONFIDENCE, road_class)
     dets = res["detections"]
     if not dets:
         raise RuntimeError(f"{img_path.name} has no detections at the report threshold")

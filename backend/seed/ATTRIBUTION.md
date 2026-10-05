@@ -11,31 +11,31 @@ the RoadGuard detector. They were resized to at most 960 px wide and re-encoded 
 
 The report locations, reporters, descriptions and statuses are fictional demo data;
 the detections, severities and cost estimates were produced by the RoadGuard pipeline
-(detector `best.pt`).
+(detector `roadguard_det.pt`).
 
 ## Files
 
-- `images/India_005305.jpg`
-- `images/India_000200.jpg`
-- `images/India_007438.jpg`
-- `images/India_008821.jpg`
-- `images/India_000726.jpg`
-- `images/India_002646.jpg`
-- `images/India_000596.jpg`
-- `images/India_007888.jpg`
-- `images/India_003674.jpg`
 - `images/India_004459.jpg`
-- `images/India_008079.jpg`
-- `images/India_005354.jpg`
-- `images/India_004908.jpg`
-- `images/India_003093.jpg`
-- `images/India_008188.jpg`
-- `images/India_008548.jpg`
-- `images/India_007439.jpg`
-- `images/India_005711.jpg`
-- `images/India_006316.jpg`
-- `images/India_000933.jpg`
+- `images/India_006581.jpg`
+- `images/India_008446.jpg`
+- `images/India_009353.jpg`
+- `images/India_007888.jpg`
+- `images/India_002024.jpg`
 - `images/India_007755.jpg`
-- `images/India_003761.jpg`
-- `images/India_005526.jpg`
-- `images/India_000054.jpg`
+- `images/India_007288.jpg`
+- `images/India_003323.jpg`
+- `images/India_001350.jpg`
+- `images/India_006607.jpg`
+- `images/India_000596.jpg`
+- `images/India_002679.jpg`
+- `images/India_003288.jpg`
+- `images/India_006645.jpg`
+- `images/India_006330.jpg`
+- `images/India_002705.jpg`
+- `images/India_003701.jpg`
+- `images/India_009002.jpg`
+- `images/India_000543.jpg`
+- `images/India_009122.jpg`
+- `images/India_002646.jpg`
+- `images/India_009692.jpg`
+- `images/India_003079.jpg`
