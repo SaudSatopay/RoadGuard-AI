@@ -97,7 +97,8 @@ export default function Today({ summary }) {
   return (
     <div className="space-y-8">
       <PageHead title="Today" sub={`${dateLabel(new Date().toISOString())} · all wards`}>
-        <Link to="/console/scan" className="inline-flex h-10 items-center gap-2 rounded-sm bg-paint px-4 font-display text-base font-bold uppercase tracking-[0.02em] text-paint-ink">
+        {/* Below lg the header already carries a Scan button */}
+        <Link to="/console/scan" className="hidden h-10 items-center gap-2 rounded-sm bg-paint px-4 font-display text-base font-bold uppercase tracking-[0.02em] text-paint-ink lg:inline-flex">
           <Camera className="h-4 w-4" aria-hidden="true" /> Scan a photo
         </Link>
       </PageHead>

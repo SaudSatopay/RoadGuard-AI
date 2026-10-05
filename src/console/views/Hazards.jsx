@@ -36,11 +36,12 @@ function HazardRow({ h, selected }) {
         </span>
         <span className="min-w-0">
           <span className="flex items-center gap-2">
-            <CodeBadge code={d?.code} />
+            <span className="shrink-0"><CodeBadge code={d?.code} /></span>
             <span className="line-clamp-2 text-sm font-medium leading-snug">{h.worst?.location_name || h.hazard_id}</span>
           </span>
+          {/* Report count first: on a phone the end of this line is what gets cut */}
           <span className="mt-0.5 block truncate font-mono text-2xs text-ink-3">
-            {h.hazard_id} · {wardLabel(h.ward) ? `${wardLabel(h.ward)} · ` : ""}{h.report_count} report{h.report_count === 1 ? "" : "s"}
+            {h.report_count} report{h.report_count === 1 ? "" : "s"} · {h.hazard_id}{wardLabel(h.ward) ? ` · ${wardLabel(h.ward)}` : ""}
           </span>
         </span>
         <span className="flex flex-col items-end gap-1">
@@ -235,7 +236,7 @@ export default function Hazards() {
               </div>
               {loading ? <Loading label="Loading hazards" rows={6} /> : list.length ? (
                 <ul className="divide-y divide-line border-y border-line">{list.map((h) => <HazardRow key={h.hazard_id} h={h} selected={h.hazard_id === selectedId} />)}</ul>
-              ) : (
+              ) : error && !hazards.length ? null /* the load failed: the error above explains it, not "try another filter" */ : (
                 <Empty title={query ? "No match" : "Nothing here"}>{query ? `No hazard matches “${query}”.` : "No hazards in this view. Try another filter."}</Empty>
               )}
               {selectedId && !selected && !loading && <p className="text-sm text-ink-2">Hazard {selectedId} isn't in the current data.</p>}

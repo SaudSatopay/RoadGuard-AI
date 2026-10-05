@@ -115,20 +115,24 @@ function Forecast() {
     .slice(0, 6);
   return (
     <ol className="divide-y divide-line border-b border-line">
-      {zones.map((z, i) => (
-        <li key={z.zone} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-baseline gap-x-3 py-3">
-          <span className="font-mono text-sm num text-ink-3">{String(i + 1).padStart(2, "0")}</span>
-          <span className="min-w-0">
-            <span className="block truncate font-medium">{z.zone}</span>
-            <span className="block text-xs text-ink-3">
-              {z.active_issues} open · severity {number(z.avg_severity)} · risk {number(z.risk_score)}/100
+      {zones.map((z, i) => {
+        const failing = z.earliest_failure_days <= 0;
+        return (
+          <li key={z.zone} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-baseline gap-x-3 py-3">
+            <span className="font-mono text-sm num text-ink-3">{String(i + 1).padStart(2, "0")}</span>
+            <span className="min-w-0">
+              <span className="block truncate font-medium">{z.zone}</span>
+              <span className="block text-xs text-ink-3">
+                {failing ? <span className="text-crit">failing now</span> : `fails in about ${z.earliest_failure_days} d`} · {z.active_issues} open · severity {number(z.avg_severity)}
+              </span>
             </span>
-          </span>
-          <span className={`whitespace-nowrap font-mono text-sm num ${z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>
-            {z.earliest_failure_days <= 0 ? "failing now" : z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}
-          </span>
-        </li>
-      ))}
+            {/* Roads already failing are ranked by risk, so that is the figure that tells them apart */}
+            <span className={`whitespace-nowrap text-right font-mono text-sm num ${failing || z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>
+              {failing ? <>risk {number(z.risk_score)}</> : z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 }
@@ -148,7 +152,7 @@ export default function Accountability() {
           <p className="mt-2 text-xs text-ink-3">Negligence = severity × days each hazard has stayed open, summed per ward office. Offices with nothing open are left off.</p>
         </section>
         <section aria-labelledby="forecast-h">
-          <SectionHead title={<span id="forecast-h">Likely to fail next</span>} note="days to a pothole" />
+          <SectionHead title={<span id="forecast-h">Likely to fail next</span>} note="days to a pothole, or risk if failing" />
           <div className="mt-1"><Forecast /></div>
           <p className="mt-2 text-xs text-ink-3">Rule-based deterioration rates per defect type, 2.5× faster June to September.</p>
         </section>

@@ -44,7 +44,7 @@ export async function api(path, { method = "GET", form, json, signal, timeout = 
     throw new ApiError(
       err?.name === "TimeoutError" || ctrl.signal.reason?.name === "TimeoutError"
         ? "The RoadGuard server took too long to answer."
-        : "Can't reach the RoadGuard server. Start it with RoadGuard.bat and try again.",
+        : "Can't reach RoadGuard right now. Check your connection and try again.", // the console's banner tells inspectors how to start the server
       0,
     );
   }
