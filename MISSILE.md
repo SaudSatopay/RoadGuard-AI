@@ -2,8 +2,8 @@
 
 status: stage=1 iteration=2 verdict=CONTINUE updated=2026-10-05T14:23:00.606Z
 mode: full flight (existing project, revamp + rename)
-branch: missile/20261004
-url: none
+branch: main (github.com/SaudSatopay/RoadGuard-AI, private)
+url: none (hosting out of scope)
 max_iterations: 4
 
 ## Target
@@ -173,6 +173,12 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
 
 - 2026-10-04: Cloned the repo into the session folder root and branched `missile/20261004` from `master` (44a4902). The user's `docs/` folder stays untracked.
 - 2026-10-04: Backend runs from `backend/.venv` created with `--system-site-packages`, so the machine's CUDA torch 2.11 and ultralytics 8.4 are reused instead of downloading 2.5 GB again; only PyJWT was installed into the venv.
+- 2026-10-05: The project moved to a new GitHub repository, SaudSatopay/RoadGuard-AI, created private (the owner decides when to make it public). At the owner's request `main` was rewritten so no commit carries an AI co-author trailer; the original CrackWatch history is kept byte-identical and every commit is authored by Saud Satopay. `.claude/` is no longer tracked. `main` supersedes the `missile/20261004` branch.
+- 2026-10-05: Training was paused after epoch 15 at the owner's request and resumed from the checkpoint; 25 epochs finished at val mAP@0.5 0.572. `training/export.py` now evaluates before the ONNX export, because Ultralytics' CPU export sets CUDA_VISIBLE_DEVICES=-1 for the rest of the process.
+- 2026-10-05: Plan item M1's acceptance test ("above the legacy model overall and per country") is NOT met as written. Held-out test: 0.602 vs 0.635 overall, India 0.42 vs 0.64, Japan 0.56 vs 0.80, all three legacy figures likely inflated because it trained on RDD2022 India and Japan photos from the same pool as the test split. On Czech, US and China test photos, the only ones neither model could have trained on, 0.58 vs 0.29 (RoadGuard trained on other photos from those countries, the legacy model on none). Every surface states it this way; India is named as the weakest country and is the first roadmap item.
+- 2026-10-05: The demo seed is drawn across severity levels (7 critical, 8 severe, 5 moderate, 4 minor) instead of the detector's most confident photos, which made 15 of 24 critical; the leaderboard, badges and daily challenges are rebuilt from the ledger instead of a hard-coded board.
+- 2026-10-05: Entry stylesheets are inlined at build time (first paint 0.7 s with applied throttling). Simulated mobile LCP stays about 3.1 s on the landing and 3.0 s on login (citizen 2.4 s) because the local preview serves about 16 shared JS chunks and 140 KB of web fonts over HTTP/1.1 ahead of the hero photo; consolidating chunks or subsetting fonts (which needs the full font files downloaded) was deferred as riskier than the gain.
+- 2026-10-05: Hosting stays out of scope per the definition of done, so `shipped` cannot reach 9; publishing a public deployment needs the owner's go-ahead.
 - 2026-10-04: RDD2022 is one 13.3 GB stored zip with one inner zip per country. `training/download_rdd2022.py` reads its central directory over HTTP range requests and downloads only India, Japan, Czech, United_States and China_MotorBike (2.5 GB). Norway (10.6 GB, high-res) and China_Drone (top-down view) are skipped. Data lives in `training/data/` (gitignored). License CC BY 4.0.
 
 ## Remaining gaps
