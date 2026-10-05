@@ -15,7 +15,7 @@ export function PageHead({ title, sub, children }) {
 
 export function SectionHead({ title, note, children, className = "" }) {
   return (
-    <div className={`flex items-end justify-between gap-3 border-b-[3px] border-ink pb-1.5 ${className}`}>
+    <div className={`flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-b-[3px] border-ink pb-1.5 ${className}`}>
       <h2 className="sign text-lg leading-none">{title}</h2>
       <div className="flex items-center gap-2 font-mono text-2xs text-ink-3">
         {note}

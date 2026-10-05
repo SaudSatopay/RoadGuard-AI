@@ -43,14 +43,18 @@ function Worklist({ hazards }) {
                 {h.image_url && <img src={mediaUrl(h.image_url)} alt="" width="56" height="56" loading="lazy" className="h-full w-full object-cover" />}
               </span>
               <span className="min-w-0">
-                <span className="flex flex-wrap items-center gap-2">
-                  <CodeBadge code={d?.code} />
+                {/* Three fixed lines on a phone (name, place, code · days · cost) so every row is the same height */}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="hidden shrink-0 sm:inline-flex"><CodeBadge code={d?.code} /></span>
                   <span className="truncate font-medium">{d?.label || "Road damage"}</span>
                 </span>
                 <span className="mt-0.5 block truncate text-sm text-ink-2">
                   {h.report_count > 1 && <span className="font-mono text-2xs text-ink-3">×{h.report_count} · </span>}
                   {r?.location_name || "Reported location"}
                   {wardLabel(h.ward) ? ` · ${wardLabel(h.ward)}` : ""}
+                </span>
+                <span className="mt-0.5 block truncate font-mono text-2xs num text-ink-3 sm:hidden">
+                  {[d?.code, h.days_open != null ? `${Math.floor(h.days_open)} d` : null, h.cost ? rupees(h.cost, { compact: true }) : null].filter(Boolean).join(" · ")}
                 </span>
               </span>
               <span className="hidden text-right sm:block">
