@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import compression from "compression";
+import { inlineCss } from "../tools/inline-css.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const shared = path.resolve(here, "..", "shared");
@@ -32,7 +33,7 @@ const proxy = {
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), previewCompression],
+  plugins: [react(), tailwindcss(), inlineCss(), previewCompression],
   resolve: {
     alias: { "@shared": shared },
     // Shared components import React and friends; resolve them from this app so there is one copy.
