@@ -1,6 +1,6 @@
 # Missile log: RoadGuard AI
 
-status: stage=1 iteration=1 verdict=CONTINUE updated=2026-10-04T16:50:52.721Z
+status: stage=1 iteration=2 verdict=CONTINUE updated=2026-10-05T14:23:00.606Z
 mode: full flight (existing project, revamp + rename)
 branch: missile/20261004
 url: none
@@ -72,19 +72,19 @@ Main-session findings added after reading the code:
 ## Scoreboard
 
 <!-- scoreboard:start -->
-| dimension | baseline | it1 | target |
-|---|---|---|---|
-| first_impression | 4 | 7 | 9+ |
-| design_system | 4 | 8 | 9+ |
-| layout | 3 | 7 | 9+ |
-| motion | 3 | 7 | 9+ |
-| ux_completeness | 4 | 7 | 9+ |
-| accessibility | 4 | 8 | 9+ |
-| performance | 4 | 8 | 9+ |
-| code_health | 4 | 8 | 9+ |
-| story | 5 | 7 | 9+ |
-| shipped | 2 | 4 | 9+ |
-| **mean** | 3.7 | 7.1 | 9.5+ |
+| dimension | baseline | it1 | it2 | target |
+|---|---|---|---|---|
+| first_impression | 4 | 7 | 8 | 9+ |
+| design_system | 4 | 8 | 8 | 9+ |
+| layout | 3 | 7 | 8 | 9+ |
+| motion | 3 | 7 | 7 | 9+ |
+| ux_completeness | 4 | 7 | 7 | 9+ |
+| accessibility | 4 | 8 | 9 | 9+ |
+| performance | 4 | 8 | 8 | 9+ |
+| code_health | 4 | 8 | 8 | 9+ |
+| story | 5 | 7 | 7 | 9+ |
+| shipped | 2 | 4 | 6 | 9+ |
+| **mean** | 3.7 | 7.1 | 7.6 | 9.5+ |
 <!-- scoreboard:end -->
 
 ## Plan
@@ -153,6 +153,19 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
   - [M] ux_completeness: Read backlog, acted-on and counts from one backend aggregate on the landing, console and citizen ledger, and make the Model card show the legacy detector's measured metrics instead of '—' and 'No evaluation file found' (src/landing/Ledger.jsx, src/landing/ModelFacts.jsx, src/console/views/ModelCard.jsx, src/console/data.js)
   - [S] accessibility: Re-run the keyboard walk and Lighthouse after the marker-name and file-input fixes, and fix the landing contrast element and the label-name mismatch on landing and login (src/landing/Hero.jsx, src/console/Login.jsx, shared/tokens.css)
   - [M] layout: At 390, render the Accountability scorecard as stacked rows with the health bar visible, let hazard-row titles wrap so days-open never truncates, and fix the empty sixth KPI cell on Today (src/console/views/Accountability.jsx, src/console/ui.jsx, src/console/views)
+
+### Iteration 2 · 2026-10-05T14:23:00.606Z
+- mean 7.6, min 6, verdict **CONTINUE**
+- url: http://localhost:4173 (landing + console), http://localhost:4175 (citizen app), http://127.0.0.1:8000 (API)
+- screens: landing, console login, console today, console scan (empty), console scan result, console hazards, console hazard detail, console accountability, console model card, console settings, citizen onboarding, citizen map, citizen my reports (empty), citizen report (photo, where, result), citizen rewards, citizen ledger, README.md, assets/readme/*.png, public/og.png
+- next fixes:
+  - [S] story: Correct the model claim: replace 'countries neither model trained on', 'unseen countries' and 'like-for-like' with accurate wording (RoadGuard trained on Czech/US/China training splits; the old model never saw those countries), fix the ModelFacts subtitle that says both models' test photos were held out from training, and add an India-is-weakest bullet to the Model card Limits (README.md, CHANGELOG.md, src/console/views/ModelCard.jsx, src/landing/ModelFacts.jsx)
+  - [S] motion: Fix the motion sensor (unmeasured two iterations running): record the landing load at 4x CPU throttle plus one hover and one focus on a hazard row, and cap MarkedPhoto delays if the last mark settles after 1000 ms (.missile/flows.py, shared/ui/MarkedPhoto.jsx, src/landing/Hero.jsx)
+  - [S] first_impression: Open the hero on a crisp, high-confidence pothole (India_006316, or put India_004459's 0.76 pothole first and on the surveyed side of the default split), and make the plate caption, stat row and README show the same latency (src/landing/Hero.jsx, src/landing/facts.json, public/showcase, README.md)
+  - [S] performance: Inline critical CSS (beasties via a Vite plugin) in both apps to remove the 600 ms render-blocking stylesheet, and preload only the hero's Barlow 800 woff2, to get LCP under 2.5 s (vite.config.js, public-app/vite.config.js, index.html)
+  - [S] shipped: Tag v4.0.0-roadguard, make the repo public, and log a fresh-clone RoadGuard.bat run to .missile/checks/fresh-clone-it3.txt (RoadGuard.bat, CHANGELOG.md)
+  - [S] ux_completeness: Fix the citizen Rewards tab: render challenge c.name (backend key) with a contract test, crop Spot-the-defect only from detections of confidence ≥ 0.5 and ≥ 120 px, and derive leaderboard counts from the ledger or label them demo profiles (public-app/src/screens/RewardsScreen.jsx, backend/gamification.py)
+  - [M] layout: At 390 on Today, keep the RDD chip inline, wrap the place name, show days-open and the rupee estimate under the status stack, span the fifth KPI across both columns, and pad the scan drop-zone text (src/console/views/Today.jsx, src/console/ui.jsx, src/console/views/Scan.jsx, src/landing/Ledger.jsx)
 
 <!-- iterations:end -->
 

@@ -5,7 +5,7 @@ Regenerate the OG image and the README screenshots from the running production p
     cd public-app && npm run build && npx vite preview --port 4175
     python tools/make_media.py
 
-Writes public/og.png (1200x630) and assets/readme/*.png.
+Writes public/og.png and public-app/public/og.png (1200x630) and assets/readme/*.png.
 """
 
 import json
@@ -55,6 +55,11 @@ def main():
         page.wait_for_timeout(1500)
         page.screenshot(path=str(OUT / "console-scan.png"))
 
+        page = b.new_page(viewport={"width": 1200, "height": 630}, device_scale_factor=1)
+        page.goto(CITIZEN + "/", wait_until="networkidle")
+        page.wait_for_timeout(1500)
+        page.screenshot(path=str(ROOT / "public-app" / "public" / "og.png"))
+
         shots = []
         ctx = b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         cp = ctx.new_page()
@@ -77,7 +82,7 @@ def main():
     sheet.save(OUT / "citizen.png", optimize=True)
     for f in OUT.glob("*.png"):
         Image.open(f).save(f, optimize=True)
-    print("media written:", ", ".join(sorted(x.name for x in OUT.glob("*.png"))), "+ public/og.png")
+    print("media written:", ", ".join(sorted(x.name for x in OUT.glob("*.png"))), "+ public/og.png, public-app/public/og.png")
 
 
 if __name__ == "__main__":
