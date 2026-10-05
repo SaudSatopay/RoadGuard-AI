@@ -4,6 +4,7 @@ import { Link, navigate } from "@shared/lib/router.js";
 import { useApi } from "@shared/lib/api.js";
 import { Wordmark } from "@shared/ui/marks.jsx";
 import { setTheme, signOut, useSession } from "./session.js";
+import { ServerStatus } from "./status.js";
 import { Loading } from "./ui.jsx";
 
 const Today = lazy(() => import("./views/Today.jsx"));
@@ -22,10 +23,26 @@ const NAV = [
   { to: "/console/settings", label: "Settings", icon: SettingsIcon, view: Settings, title: "Settings" },
 ];
 
-function useApiStatus() {
+/** "connecting" until the first health check answers, then "online" or "offline"; "no-network" when the browser is offline. */
+function useServerStatus() {
   const { data, error } = useApi("/health", { refreshMs: 15000 });
-  return { online: Boolean(data) && !error, data };
+  const [network, setNetwork] = useState(() => typeof navigator === "undefined" || navigator.onLine !== false);
+  useEffect(() => {
+    const on = () => setNetwork(true);
+    const off = () => setNetwork(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  if (!network) return "no-network";
+  if (error) return "offline";
+  return data ? "online" : "connecting";
 }
+
+const STATUS_LABEL = { online: "Detector online", connecting: "Connecting…", offline: "Server offline", "no-network": "You're offline" };
 
 function NavList({ path, counts, onNavigate }) {
   return (
@@ -56,12 +73,13 @@ function NavList({ path, counts, onNavigate }) {
   );
 }
 
-function RailFooter({ user, theme, online }) {
+function RailFooter({ user, theme, status }) {
+  const dot = status === "online" ? "bg-ok" : status === "connecting" ? "bg-ink-3" : "bg-crit";
   return (
     <div className="space-y-4 border-t border-line pt-4">
       <div className="flex items-center gap-2 px-1 text-xs text-ink-3">
-        <span className={`h-2 w-2 rounded-full ${online ? "bg-ok" : "bg-crit"}`} aria-hidden="true" />
-        {online ? "Detector online" : "Server offline"}
+        <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />
+        {STATUS_LABEL[status]}
       </div>
       <div className="px-1">
         <p className="text-sm font-semibold leading-tight">{user?.name}</p>
@@ -87,7 +105,7 @@ function RailFooter({ user, theme, online }) {
 
 export default function Console({ path }) {
   const { user, theme } = useSession();
-  const { online } = useApiStatus();
+  const status = useServerStatus();
   const summary = useApi("/analytics/summary", { refreshMs: 30000 });
   const [drawer, setDrawer] = useState(false);
   const current = NAV.find((n) => (n.to === "/console" ? path === "/console" : path.startsWith(n.to))) || NAV[0];
@@ -120,7 +138,7 @@ export default function Console({ path }) {
         <Link to="/" className="mb-7 block px-2" aria-label="RoadGuard AI home"><Wordmark /></Link>
         <p className="label mb-2 px-4 text-ink-3">Inspector console</p>
         <nav className="flex-1"><NavList path={path} counts={counts} /></nav>
-        <RailFooter user={user} theme={theme} online={online} />
+        <RailFooter user={user} theme={theme} status={status} />
       </aside>
 
       {/* Mobile bar */}
@@ -128,7 +146,7 @@ export default function Console({ path }) {
         <button type="button" onClick={() => setDrawer(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-sm border border-line-strong" aria-label="Open navigation" aria-expanded={drawer}>
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
-        <Link to="/console" aria-label="Console home"><Wordmark size="sm" /></Link>
+        <Link to="/console" aria-label="RoadGuard AI console home"><Wordmark size="sm" /></Link>
         <Link to="/console/scan" className="inline-flex h-10 items-center rounded-sm bg-paint px-3 font-display text-base font-bold uppercase text-paint-ink">Scan</Link>
       </header>
 
@@ -143,23 +161,30 @@ export default function Console({ path }) {
               </button>
             </div>
             <nav className="flex-1"><NavList path={path} counts={counts} onNavigate={() => setDrawer(false)} /></nav>
-            <RailFooter user={user} theme={theme} online={online} />
+            <RailFooter user={user} theme={theme} status={status} />
           </div>
         </div>
       )}
 
       <main id="console-main" className="pt-[6px] lg:pl-[248px]">
         <div className="mx-auto max-w-[1500px] px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-8">
-          {!online && (
+          {status === "offline" && (
             <div role="status" className="mb-5 border-l-[3px] border-crit bg-crit-wash px-4 py-2.5 text-sm">
               <span className="font-medium">The RoadGuard server isn't answering.</span> Live data and scanning are paused. Start it with
               <span className="mx-1 rounded-xs bg-paper-3 px-1.5 py-0.5 font-mono text-xs">RoadGuard.bat</span>
               and this page reconnects on its own.
             </div>
           )}
-          <Suspense fallback={<Loading label={`Loading ${current.title}`} rows={6} />}>
-            <View path={path} summary={summary} />
-          </Suspense>
+          {status === "no-network" && (
+            <div role="status" className="mb-5 border-l-[3px] border-ink bg-paper-3 px-4 py-2.5 text-sm">
+              <span className="font-medium">You're offline.</span> What's on screen is what RoadGuard last loaded; it refreshes when your connection is back.
+            </div>
+          )}
+          <ServerStatus.Provider value={status}>
+            <Suspense fallback={<Loading label={`Loading ${current.title}`} rows={6} />}>
+              <View path={path} summary={summary} />
+            </Suspense>
+          </ServerStatus.Provider>
         </div>
       </main>
     </div>

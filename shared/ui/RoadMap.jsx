@@ -81,6 +81,10 @@ export default function RoadMap({ points, selected, onSelect, className = "", in
         zoomControl={interactive && zoomControl}
         scrollWheelZoom={false}
         dragging={interactive}
+        doubleClickZoom={interactive}
+        touchZoom={interactive}
+        boxZoom={interactive}
+        keyboard={interactive}
         attributionControl
       >
         <TileLayer
@@ -92,14 +96,18 @@ export default function RoadMap({ points, selected, onSelect, className = "", in
         <NameContainer label={label} />
         {points.map((p) => (
           <Marker
-            key={p.id}
+            key={`${p.id}|${markerName(p)}`} // remount when the name changes: the label is only written when a pin is added
             position={[p.lat, p.lng]}
             icon={icons[`${p.level}-${p.status}-${p.id === selected}-${p.count || 1}`]}
             eventHandlers={{
-              add: (e) => e.target.getElement()?.setAttribute("aria-label", markerName(p)),
+              // A pin people can act on gets a name; on an overview map the pins are decoration of the link around it.
+              add: (e) => interactive
+                ? e.target.getElement()?.setAttribute("aria-label", markerName(p))
+                : e.target.getElement()?.setAttribute("aria-hidden", "true"),
               ...(onSelect ? { click: () => onSelect(p.id) } : {}),
             }}
-            keyboard={Boolean(onSelect)}
+            interactive={interactive}
+            keyboard={interactive && Boolean(onSelect)}
             title={p.label}
             alt={p.label}
           >

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { ArrowRight, Camera } from "lucide-react";
-import { Link, navigate } from "@shared/lib/router.js";
+import { Link } from "@shared/lib/router.js";
 import { mediaUrl, useApi } from "@shared/lib/api.js";
 import { dateLabel, number, rupees } from "@shared/lib/format.js";
 import { defectOf, wardLabel } from "@shared/lib/roadguard.js";
@@ -19,7 +19,14 @@ function SummaryStrip({ s }) {
       <Stat label="Critical open" value={s ? number(s.critical_open) : "—"} tone={s?.critical_open ? "crit" : "ink"} sub="S4 · fix within 7 days" />
       <Stat label="Median days open" value={s?.median_days_open != null ? number(s.median_days_open, 1) : "—"} sub="across open hazards" />
       <Stat label="Open repair backlog" value={s ? rupees(s.backlog_cost, { compact: true }) : "—"} sub="estimate for open hazards" />
-      <Stat className="col-span-2 lg:col-span-1" label="Fixed on time" value={s?.sla ? `${Math.round(s.sla.on_time_pct)}%` : "—"} tone={s?.sla?.breaches ? "ink" : "ok"} sub={s?.sla ? `${number(s.sla.breaches)} past RoadGuard target` : " "} />
+      <Stat className="col-span-2 lg:col-span-1" label="Fixed on time" value={s?.sla ? `${Math.round(s.sla.on_time_pct)}%` : "—"} tone={s?.sla?.breaches ? "ink" : "ok"} sub={s?.sla ? `${number(s.sla.breaches)} past RoadGuard target` : " "}>
+        {/* Where this cell spans the full row, the bar uses the width */}
+        {s?.sla && (
+          <div className="mt-2.5 h-1.5 bg-paper-3 lg:hidden" aria-hidden="true">
+            <div className="h-full bg-ok" style={{ width: `${Math.min(100, Math.max(0, s.sla.on_time_pct))}%` }} />
+          </div>
+        )}
+      </Stat>
     </div>
   );
 }
@@ -84,7 +91,7 @@ export default function Today({ summary }) {
     level: h.worst_level,
     status: h.status,
     count: h.report_count,
-    label: `${h.hazard_id} · ${h.worst?.location_name || ""}`,
+    label: [h.hazard_id, h.worst?.location_name].filter(Boolean).join(" · "),
   }));
 
   return (
@@ -100,7 +107,7 @@ export default function Today({ summary }) {
       <div className="grid gap-8 xl:grid-cols-12">
         <section className="xl:col-span-7" aria-labelledby="worklist-title">
           <SectionHead title={<span id="worklist-title">Fix in this order</span>} note="severity × days open × citizen votes" />
-          {loading ? <Loading label="Loading worklist" /> : error ? <ErrorState error={error} onRetry={reload} /> : <Worklist hazards={hazards} />}
+          {loading ? <Loading label="Loading worklist" rows={8} rowClassName="h-[72px] sm:h-[76px]" /> : error ? <ErrorState error={error} onRetry={reload} /> : <Worklist hazards={hazards} />}
           <Link to="/console/hazards" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink">
             All hazards on the map <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
@@ -111,12 +118,20 @@ export default function Today({ summary }) {
             <SectionHead title={<span id="map-title">Where</span>} note={`${points.length} hazards`} />
             <ErrorBoundary name="map" title="The map didn't load" className="mt-3">
             <Suspense fallback={<div className="mt-3 h-[300px] animate-pulse rounded-md bg-paper-3" />}>
-              <RoadMap
-                className="mt-3 h-[300px]"
-                points={points}
-                onSelect={(id) => navigate(`/console/hazards?h=${encodeURIComponent(id)}`)}
-                label="Map of open and fixed hazards"
-              />
+              {/* An overview: on a 300 px map the pins overlap, so the whole map opens the full hazard map, whose list
+                  is the precise way to pick one */}
+              <div className="relative mt-3">
+                <RoadMap className="h-[300px]" points={points} interactive={false} label="Map of open and fixed hazards" />
+                <Link
+                  to="/console/hazards"
+                  aria-label={`Open the hazard map, ${points.length} hazards`}
+                  className="group absolute inset-0 z-[500] flex items-start justify-end rounded-md p-3"
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-sm bg-paper/95 px-2.5 py-1.5 text-sm font-medium text-ink shadow-lift transition-transform duration-150 [@media(hover:hover)]:group-hover:-translate-y-0.5">
+                    Open the hazard map <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                </Link>
+              </div>
             </Suspense>
             </ErrorBoundary>
           </section>

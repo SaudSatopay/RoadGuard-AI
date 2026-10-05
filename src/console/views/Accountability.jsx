@@ -39,8 +39,12 @@ function Wards() {
               <span className="text-xs text-ink-3">{w.authority}</span>
             </div>
             <div className="mt-1.5 grid grid-cols-[1fr_auto] items-center gap-3">
-              <span className="font-mono text-xs num text-ink-2">
-                {number(w.open)} open · <span className={w.critical_open ? "text-crit" : ""}>{number(w.critical_open)} S4</span> · {w.avg_days_open != null ? `${number(w.avg_days_open, 1)} d avg` : "—"} · {number(w.sla_breaches)} late
+              {/* Each figure stays whole, so a narrow screen wraps between figures, never inside one */}
+              <span className="flex flex-wrap gap-x-2 font-mono text-xs num text-ink-2 [&>span]:whitespace-nowrap">
+                <span>{number(w.open)} open</span>
+                <span className={w.critical_open ? "text-crit" : ""}>{number(w.critical_open)} S4</span>
+                <span>{w.avg_days_open != null ? `${number(w.avg_days_open, 1)} d avg` : "no age"}</span>
+                <span>{number(w.sla_breaches)} late</span>
               </span>
               <HealthBar value={w.health_score} />
             </div>
@@ -105,21 +109,27 @@ function Forecast() {
   const { data, error, loading } = useApi("/analytics/forecast", { refreshMs: 120000 });
   if (loading && !data) return <Loading rows={4} />;
   if (error && !data) return <ErrorState error={error} />;
-  const zones = [...(data?.zones || [])].sort((a, b) => a.earliest_failure_days - b.earliest_failure_days).slice(0, 6);
+  // Soonest first; roads already failing are told apart by their risk score, then by how much is open.
+  const zones = [...(data?.zones || [])]
+    .sort((a, b) => a.earliest_failure_days - b.earliest_failure_days || b.risk_score - a.risk_score || b.active_issues - a.active_issues)
+    .slice(0, 6);
   return (
-    <ul className="divide-y divide-line border-b border-line">
-      {zones.map((z) => (
-        <li key={z.zone} className="py-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="truncate font-medium">{z.zone}</span>
-            <span className={`font-mono text-sm num ${z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>
-              {z.earliest_failure_days <= 0 ? "Already failing" : z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}
+    <ol className="divide-y divide-line border-b border-line">
+      {zones.map((z, i) => (
+        <li key={z.zone} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-baseline gap-x-3 py-3">
+          <span className="font-mono text-sm num text-ink-3">{String(i + 1).padStart(2, "0")}</span>
+          <span className="min-w-0">
+            <span className="block truncate font-medium">{z.zone}</span>
+            <span className="block text-xs text-ink-3">
+              {z.active_issues} open · severity {number(z.avg_severity)} · risk {number(z.risk_score)}/100
             </span>
-          </div>
-          <p className="text-xs text-ink-3">{z.forecast} · {z.active_issues} open</p>
+          </span>
+          <span className={`whitespace-nowrap font-mono text-sm num ${z.earliest_failure_days < 14 ? "text-crit" : "text-ink"}`}>
+            {z.earliest_failure_days <= 0 ? "failing now" : z.earliest_failure_days < 999 ? `${z.earliest_failure_days} d` : "—"}
+          </span>
         </li>
       ))}
-    </ul>
+    </ol>
   );
 }
 

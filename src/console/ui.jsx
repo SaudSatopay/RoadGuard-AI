@@ -1,5 +1,7 @@
 // Console building blocks: section heads, segmented controls, states, buttons. Tokens only.
+import { useContext, useEffect, useRef } from "react";
 import { AlertTriangle, LoaderCircle, RefreshCw } from "lucide-react";
+import { ServerStatus } from "./status.js";
 
 export function PageHead({ title, sub, children }) {
   return (
@@ -64,11 +66,12 @@ export function Segmented({ label, value, options, onChange, size = "md", classN
   );
 }
 
-export function Loading({ label = "Loading", rows = 4 }) {
+/** Skeleton rows; give `rowClassName` the loaded row height so nothing below jumps when the data arrives. */
+export function Loading({ label = "Loading", rows = 4, rowClassName = "h-10" }) {
   return (
     <div role="status" aria-label={label} className="space-y-2 py-3">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="h-10 animate-pulse bg-paper-3" style={{ opacity: 1 - i * 0.15 }} />
+        <div key={i} className={`animate-pulse bg-paper-3 ${rowClassName}`} style={{ opacity: Math.max(0.25, 1 - i * 0.12) }} />
       ))}
       <span className="sr-only">{label}…</span>
     </div>
@@ -80,6 +83,20 @@ export function Spinner({ className = "h-4 w-4" }) {
 }
 
 export function ErrorState({ error, onRetry, title = "Couldn't load this" }) {
+  const status = useContext(ServerStatus);
+  const previous = useRef(status);
+  useEffect(() => {
+    if (previous.current !== "online" && status === "online") onRetry?.(); // reload on its own when the server is back
+    previous.current = status;
+  }, [status, onRetry]);
+  // While the page banner already says the server is down, a section that couldn't reach it stays quiet.
+  if ((status === "offline" || status === "no-network") && !error?.status) {
+    return (
+      <p role="status" className="flex items-center gap-2 border border-dashed border-line-strong px-4 py-3 text-sm text-ink-3">
+        <Spinner className="h-3.5 w-3.5" /> Waiting for the server. This reloads when it answers.
+      </p>
+    );
+  }
   return (
     <div role="alert" className="border-l-[3px] border-crit bg-crit-wash px-4 py-3">
       <p className="flex items-center gap-2 font-medium text-ink">
@@ -105,13 +122,14 @@ export function Empty({ title, children, action }) {
   );
 }
 
-export function Stat({ label, value, sub, tone = "ink", className = "" }) {
+export function Stat({ label, value, sub, tone = "ink", className = "", children }) {
   const tones = { ink: "text-ink", crit: "text-crit", ok: "text-ok" };
   return (
     <div className={`min-w-0 px-4 py-3 ${className}`}>
       <p className="label text-ink-3">{label}</p>
       <p className={`mt-1 font-display text-4xl font-bold leading-none num ${tones[tone]}`}>{value}</p>
       {sub && <p className="mt-1 truncate text-xs text-ink-3">{sub}</p>}
+      {children}
     </div>
   );
 }

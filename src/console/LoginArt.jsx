@@ -7,7 +7,7 @@ export default function LoginArt() {
   return (
     <>
       <MarkedPhoto src={plate.src} width={plate.width} height={plate.height} detections={plate.detections} mode="marks" notes="compact" alt={`Sample survey: ${plate.source}`} />
-      <p className="mt-3 font-mono text-2xs text-chalk-2">{plate.source} · {plate.detections.length} defects marked</p>
+      <p className="mt-3 font-mono text-2xs text-chalk-2">{plate.source} · {plate.detections.length} defect{plate.detections.length === 1 ? "" : "s"} marked</p>
     </>
   );
 }

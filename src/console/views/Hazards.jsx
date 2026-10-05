@@ -96,7 +96,7 @@ function StatusActions({ hazard, onChanged }) {
       <Stepper status={hazard.status} />
       <label className="block">
         <span className="sr-only">Note for the status history</span>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note for the record (optional): crew, contractor, work order no."
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note (optional): crew, work order"
           className="h-10 w-full rounded-xs border border-line-strong bg-sheet px-3 text-sm placeholder:text-ink-3" />
       </label>
       <div className="flex flex-wrap gap-2">
@@ -197,7 +197,7 @@ export default function Hazards() {
       .sort((a, b) => b.priority - a.priority || new Date(b.last_reported) - new Date(a.last_reported));
   }, [hazards, filter, query]);
   const selected = hazards.find((h) => h.hazard_id === selectedId);
-  const points = hazards.map((h) => ({ id: h.hazard_id, lat: h.latitude, lng: h.longitude, level: h.worst_level, status: h.status, count: h.report_count, label: `${h.hazard_id} · ${h.worst?.location_name || ""}` }));
+  const points = hazards.map((h) => ({ id: h.hazard_id, lat: h.latitude, lng: h.longitude, level: h.worst_level, status: h.status, count: h.report_count, label: [h.hazard_id, h.worst?.location_name].filter(Boolean).join(" · ") }));
 
   return (
     <div className="space-y-6">
