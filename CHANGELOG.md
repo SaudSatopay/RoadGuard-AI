@@ -4,6 +4,14 @@
 
 ---
 
+## v4.0.1
+- Model copy corrected: India (0.42 mAP@0.5) is RoadGuard's second-lowest country after Czech (0.28), not its lowest; the console model card now derives that sentence from the measured numbers.
+- Landing: keyboard and screen-reader users reach the two actions before the photo; on phones the actions sit directly under the marked photo, inside the first screen; the opening sweep settles within about 0.9 s; the plate no longer shows a second latency figure next to the stat row's.
+- Console: a server outage is one banner with quiet sections that reload themselves when it answers; "Connecting…" instead of "Server offline" while the first check is pending; a notice when the browser itself goes offline; the Today map is an overview that opens the full hazard map instead of a field of overlapping pins; the worklist skeleton matches the loaded rows (layout shift on phones 0.23 to 0.07); map pin names no longer go stale. Lighthouse accessibility is 100 on the landing, login, signed-in console and citizen app.
+- Accountability ranks roads that are already failing by risk instead of six identical rows; ward figures wrap whole on phones.
+- Citizen app: skip link; badges show what earns them.
+- Designed 1200×630 share cards for both apps; `og:image` becomes absolute when `ROADGUARD_SITE_URL` is set at build time; both `.env.example` files list the variables that actually exist.
+
 ## v4.0.0 — RoadGuard AI
 - Renamed CrackWatch to RoadGuard AI across the apps, API, WhatsApp bot and docs.
 - New detector: YOLO26s fine-tuned on RDD2022 (India, Japan, Czech, United States, China motorbike), evaluated against the old YOLOv8s on a held-out split of 1,674 photos: mAP@0.5 0.58 against 0.29 on the Czech, US and China test photos (the only ones neither model could have trained on), 0.602 on all test photos; 13 ms per photo on a GPU, 73 ms on a CPU through the ONNX export; model card served at `GET /model`.

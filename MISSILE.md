@@ -1,6 +1,6 @@
 # Missile log: RoadGuard AI
 
-status: stage=1 iteration=2 verdict=CONTINUE updated=2026-10-05T14:23:00.606Z
+status: stage=1 iteration=3 verdict=CONTINUE updated=2026-10-05T15:02:10.035Z
 mode: full flight (existing project, revamp + rename)
 branch: main (github.com/SaudSatopay/RoadGuard-AI, private)
 url: none (hosting out of scope)
@@ -72,19 +72,19 @@ Main-session findings added after reading the code:
 ## Scoreboard
 
 <!-- scoreboard:start -->
-| dimension | baseline | it1 | it2 | target |
-|---|---|---|---|---|
-| first_impression | 4 | 7 | 8 | 9+ |
-| design_system | 4 | 8 | 8 | 9+ |
-| layout | 3 | 7 | 8 | 9+ |
-| motion | 3 | 7 | 7 | 9+ |
-| ux_completeness | 4 | 7 | 7 | 9+ |
-| accessibility | 4 | 8 | 9 | 9+ |
-| performance | 4 | 8 | 8 | 9+ |
-| code_health | 4 | 8 | 8 | 9+ |
-| story | 5 | 7 | 7 | 9+ |
-| shipped | 2 | 4 | 6 | 9+ |
-| **mean** | 3.7 | 7.1 | 7.6 | 9.5+ |
+| dimension | baseline | it1 | it2 | it3 | target |
+|---|---|---|---|---|---|
+| first_impression | 4 | 7 | 8 | 8 | 9+ |
+| design_system | 4 | 8 | 8 | 9 | 9+ |
+| layout | 3 | 7 | 8 | 8 | 9+ |
+| motion | 3 | 7 | 7 | 8 | 9+ |
+| ux_completeness | 4 | 7 | 7 | 8 | 9+ |
+| accessibility | 4 | 8 | 9 | 9 | 9+ |
+| performance | 4 | 8 | 8 | 7 | 9+ |
+| code_health | 4 | 8 | 8 | 8 | 9+ |
+| story | 5 | 7 | 7 | 8 | 9+ |
+| shipped | 2 | 4 | 6 | 7 | 9+ |
+| **mean** | 3.7 | 7.1 | 7.6 | 8 | 9.5+ |
 <!-- scoreboard:end -->
 
 ## Plan
@@ -167,6 +167,19 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
   - [S] ux_completeness: Fix the citizen Rewards tab: render challenge c.name (backend key) with a contract test, crop Spot-the-defect only from detections of confidence ≥ 0.5 and ≥ 120 px, and derive leaderboard counts from the ledger or label them demo profiles (public-app/src/screens/RewardsScreen.jsx, backend/gamification.py)
   - [M] layout: At 390 on Today, keep the RDD chip inline, wrap the place name, show days-open and the rupee estimate under the status stack, span the fifth KPI across both columns, and pad the scan drop-zone text (src/console/views/Today.jsx, src/console/ui.jsx, src/console/views/Scan.jsx, src/landing/Ledger.jsx)
 
+### Iteration 3 · 2026-10-05T15:02:10.035Z
+- mean 8, min 7, verdict **CONTINUE**
+- url: http://localhost:4173 (landing + console), http://localhost:4175 (citizen app), http://127.0.0.1:8000 (API)
+- screens: landing, console login, console today, console scan (empty), console scan result, console hazards, console hazard detail, console accountability, console model card, console settings, console Night shift (today, hazard detail, model card), console error, loading and offline states (today, hazards), landing ledger error and loading states, citizen onboarding, citizen map, citizen my reports (empty), citizen report (photo, where, result), citizen rewards, citizen ledger, citizen error and loading states (map, my reports, ledger), motion frames (landing load at 4x CPU, 390 and 1440; worklist row hover and focus), README.md, public/og.png, public-app/public/og.png, public-app/index.html
+- next fixes:
+  - [S] story: Correct the 'India is the weakest country' claim (Czech is 0.28, India 0.42) in README.md:87, ModelCard.jsx:115 (derive the word from the data) and MISSILE.md Decisions; then replace both OG crops with designed 1200×630 cards with no cut text and an absolute og:image (README.md, src/console/views/ModelCard.jsx, MISSILE.md, public/og.png, public-app/public/og.png, index.html, public-app/index.html)
+  - [S] first_impression: Make the crisp 0.76 pothole the first field note and first mark drawn (or open on India_006316), show one latency figure on the plate and the stat row, and add a CTA directly under the figure below 640 px (src/landing/Hero.jsx, src/landing/facts.json, public/showcase)
+  - [S] motion: Tighten the hero load so everything settles by 0.9 s nominal (sweep from 0.25 s over 500 ms, CTAs at 0.35 s + 300 ms), then re-capture at 4x with a padded focus frame showing the ring and a DevTools trace (src/landing/Hero.jsx, shared/ui/MarkedPhoto.jsx, .missile/states.py)
+  - [M] performance: Serve the hero as a responsive AVIF (400w/720w) preloaded in index.html ahead of the fonts, swap JetBrains Mono variable for one static latin 400 file, load only Barlow 800 on the landing, and add a Lighthouse run for /console (index.html, src/landing/Hero.jsx, public/showcase, src/main.jsx, shared/tokens.css)
+  - [S] layout: At 390: give the fifth Today KPI col-span-2, keep the landing ledger severity chip inline, keep 'Already failing' on one line and stop orphaned 'late' counts on Accountability, shorten the hazard note placeholder (src/console/views/Today.jsx, src/landing/Ledger.jsx, src/console/views/Accountability.jsx, src/console/views/Hazards.jsx)
+  - [M] ux_completeness: Collapse the console's all-failed state to one page banner, tell 'slow' from 'offline' and react to the browser offline event, pluralise 'defects marked', rank 'Likely to fail next' instead of six identical rows, and add a criterion under each badge (src/console/views/Today.jsx, src/console/ui.jsx, src/console/data.js, src/console/Login.jsx, src/console/views/Accountability.jsx, public-app/src/screens/RewardsScreen.jsx)
+  - [S] accessibility: Put the hero CTAs before the figure in the DOM (order-first on the figure below lg) and add a skip link to the citizen shell (src/landing/Hero.jsx, public-app/src/App.jsx)
+
 <!-- iterations:end -->
 
 ## Decisions
@@ -175,10 +188,12 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
 - 2026-10-04: Backend runs from `backend/.venv` created with `--system-site-packages`, so the machine's CUDA torch 2.11 and ultralytics 8.4 are reused instead of downloading 2.5 GB again; only PyJWT was installed into the venv.
 - 2026-10-05: The project moved to a new GitHub repository, SaudSatopay/RoadGuard-AI, created private (the owner decides when to make it public). At the owner's request `main` was rewritten so no commit carries an AI co-author trailer; the original CrackWatch history is kept byte-identical and every commit is authored by Saud Satopay. `.claude/` is no longer tracked. `main` supersedes the `missile/20261004` branch.
 - 2026-10-05: Training was paused after epoch 15 at the owner's request and resumed from the checkpoint; 25 epochs finished at val mAP@0.5 0.572. `training/export.py` now evaluates before the ONNX export, because Ultralytics' CPU export sets CUDA_VISIBLE_DEVICES=-1 for the rest of the process.
-- 2026-10-05: Plan item M1's acceptance test ("above the legacy model overall and per country") is NOT met as written. Held-out test: 0.602 vs 0.635 overall, India 0.42 vs 0.64, Japan 0.56 vs 0.80, all three legacy figures likely inflated because it trained on RDD2022 India and Japan photos from the same pool as the test split. On Czech, US and China test photos, the only ones neither model could have trained on, 0.58 vs 0.29 (RoadGuard trained on other photos from those countries, the legacy model on none). Every surface states it this way; India is named as the weakest country and is the first roadmap item.
+- 2026-10-05: Plan item M1's acceptance test ("above the legacy model overall and per country") is NOT met as written. Held-out test: 0.602 vs 0.635 overall, India 0.42 vs 0.64, Japan 0.56 vs 0.80, all three legacy figures likely inflated because it trained on RDD2022 India and Japan photos from the same pool as the test split. On Czech, US and China test photos, the only ones neither model could have trained on, 0.58 vs 0.29 (RoadGuard trained on other photos from those countries, the legacy model on none). Every surface states it this way; India (0.42) is named as second-lowest after Czech (0.28), as the country that matters for Mumbai, and as the first roadmap item. (Iteration 2 and 3 copy wrongly called India the weakest country; corrected in iteration 4.)
 - 2026-10-05: The demo seed is drawn across severity levels (7 critical, 8 severe, 5 moderate, 4 minor) instead of the detector's most confident photos, which made 15 of 24 critical; the leaderboard, badges and daily challenges are rebuilt from the ledger instead of a hard-coded board.
 - 2026-10-05: Entry stylesheets are inlined at build time (first paint 0.7 s with applied throttling). Simulated mobile LCP stays about 3.1 s on the landing and 3.0 s on login (citizen 2.4 s) because the local preview serves about 16 shared JS chunks and 140 KB of web fonts over HTTP/1.1 ahead of the hero photo; consolidating chunks or subsetting fonts (which needs the full font files downloaded) was deferred as riskier than the gain.
 - 2026-10-05: Hosting stays out of scope per the definition of done, so `shipped` cannot reach 9; publishing a public deployment needs the owner's go-ahead.
+- 2026-10-05: The console's Today map is a non-interactive overview that links to the Hazards page: on a 300 px map the 21 pins overlap below the 24 px target size, and the Hazards list is the precise, accessible way to pick one. The signed-in console is measured with Lighthouse by attaching it to a Chrome whose profile already holds a demo session (`.missile/lh_console.py`).
+- 2026-10-05: v4.0.0 was tagged after iteration 3; iteration 4's fixes ship as v4.0.1 rather than moving a published tag.
 - 2026-10-04: RDD2022 is one 13.3 GB stored zip with one inner zip per country. `training/download_rdd2022.py` reads its central directory over HTTP range requests and downloads only India, Japan, Czech, United_States and China_MotorBike (2.5 GB). Norway (10.6 GB, high-res) and China_Drone (top-down view) are skipped. Data lives in `training/data/` (gitignored). License CC BY 4.0.
 
 ## Remaining gaps
