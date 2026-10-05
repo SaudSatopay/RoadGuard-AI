@@ -84,24 +84,30 @@ The backend stores reports in a JSON ledger (`backend/data/`), photos in `backen
 
 ## The model
 
-| | **RoadGuard YOLO26s** | CrackWatch YOLOv8s (replaced) |
+On test photos from the three countries neither model trained on, RoadGuard averages **0.58** mAP@0.5; the hackathon model it replaces averages **0.29**. Its weakest country is India (0.42), the one that matters most for Mumbai, so Indian training data is the first thing to add ([roadmap](ROADMAP.md)).
+
+| mAP@0.5 unless noted | **RoadGuard YOLO26s** | CrackWatch YOLOv8s (replaced) |
 |---|---|---|
 | Training data | RDD2022: India, Japan, Czech, United States, China (motorbike) | RDD2022: Japan, India |
-| mAP@0.5, held-out test (1,674 photos) | **MODEL_MAP50** | 0.635* |
-| mAP@0.5:0.95 | **MODEL_MAP5095** | 0.342* |
-| Czech / United States / China (photos neither model trained on) | **MODEL_FAIR** | 0.17 / 0.46 / 0.24 |
-| Latency per photo (RTX 5060 Ti) | MODEL_LAT ms | 10 ms |
+| Czech / United States / China test photos (neither model trained on these countries) | **0.28 / 0.65 / 0.82** | 0.17 / 0.46 / 0.24 |
+| India / Japan test photos | 0.42 / 0.56 | 0.64* / 0.80* |
+| All 1,674 held-out test photos | 0.602 | 0.635* |
+| All test photos, mAP@0.5:0.95 | 0.298 | 0.342* |
+| Latency per photo (RTX 5060 Ti) | 12 ms | 10 ms |
+| Latency per photo, CPU only (ONNX Runtime) | 73 ms | not measured |
 
-\* The old model was trained on RDD2022 Japan and India photos drawn from the same pool as this test split, so its Japan and India scores are likely inflated by overlap. RoadGuard never saw a test photo. Full per-class and per-country numbers are on the console's **Model card** page and in `training/results/`.
+\* The old model was trained on RDD2022 Japan and India photos drawn from the same pool as this test split, so its India, Japan and all-photo scores are likely inflated by overlap. RoadGuard never saw a test photo. Full per-class and per-country numbers are on the console's **Model card** page and in `training/results/`.
 
-Reproduce from scratch (about 2.5 GB download and roughly 1.5 h of GPU time):
+Reproduce from scratch (about 2.5 GB download and under 2 h of GPU time on one RTX 5060 Ti):
 
 ```bash
 python training/download_rdd2022.py   # range-downloads only 5 country zips from the 13 GB archive
 python training/prepare_rdd2022.py    # VOC -> YOLO, seeded 88/6/6 split per country
-python training/train_detector.py --model yolo26s.pt --lean --epochs 25
-python training/evaluate.py backend/model/best.pt:legacy training/runs/<run>/weights/best.pt:roadguard
-python training/export.py --run <run> # weights + ONNX + model card + landing numbers
+# 1. three epochs from COCO weights on the full training set (a 70-epoch schedule, stopped after epoch 3)
+python training/train_detector.py --model yolo26s.pt --epochs 70 --name roadguard_yolo26s
+# 2. warm start from that checkpoint: 25 epochs on all damage photos plus 1 in 4 empty-road photos
+python training/train_detector.py --init training/runs/roadguard_yolo26s/weights/last.pt --lean --epochs 25 --name roadguard_yolo26s_v2
+python training/export.py             # weights + ONNX + held-out evaluation + model card + landing numbers
 ```
 
 ---
