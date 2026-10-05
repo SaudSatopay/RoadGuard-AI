@@ -1,6 +1,6 @@
 # Missile log: RoadGuard AI
 
-status: stage=1 iteration=3 verdict=CONTINUE updated=2026-10-05T15:02:10.035Z
+status: stage=1 iteration=4 verdict=CONTINUE updated=2026-10-05T15:34:40.763Z
 mode: full flight (existing project, revamp + rename)
 branch: main (github.com/SaudSatopay/RoadGuard-AI, private)
 url: none (hosting out of scope)
@@ -72,19 +72,19 @@ Main-session findings added after reading the code:
 ## Scoreboard
 
 <!-- scoreboard:start -->
-| dimension | baseline | it1 | it2 | it3 | target |
-|---|---|---|---|---|---|
-| first_impression | 4 | 7 | 8 | 8 | 9+ |
-| design_system | 4 | 8 | 8 | 9 | 9+ |
-| layout | 3 | 7 | 8 | 8 | 9+ |
-| motion | 3 | 7 | 7 | 8 | 9+ |
-| ux_completeness | 4 | 7 | 7 | 8 | 9+ |
-| accessibility | 4 | 8 | 9 | 9 | 9+ |
-| performance | 4 | 8 | 8 | 7 | 9+ |
-| code_health | 4 | 8 | 8 | 8 | 9+ |
-| story | 5 | 7 | 7 | 8 | 9+ |
-| shipped | 2 | 4 | 6 | 7 | 9+ |
-| **mean** | 3.7 | 7.1 | 7.6 | 8 | 9.5+ |
+| dimension | baseline | it1 | it2 | it3 | it4 | target |
+|---|---|---|---|---|---|---|
+| first_impression | 4 | 7 | 8 | 8 | 9 | 9+ |
+| design_system | 4 | 8 | 8 | 9 | 9 | 9+ |
+| layout | 3 | 7 | 8 | 8 | 8 | 9+ |
+| motion | 3 | 7 | 7 | 8 | 9 | 9+ |
+| ux_completeness | 4 | 7 | 7 | 8 | 8 | 9+ |
+| accessibility | 4 | 8 | 9 | 9 | 9 | 9+ |
+| performance | 4 | 8 | 8 | 7 | 7 | 9+ |
+| code_health | 4 | 8 | 8 | 8 | 8 | 9+ |
+| story | 5 | 7 | 7 | 8 | 9 | 9+ |
+| shipped | 2 | 4 | 6 | 7 | 7 | 9+ |
+| **mean** | 3.7 | 7.1 | 7.6 | 8 | 8.3 | 9.5+ |
 <!-- scoreboard:end -->
 
 ## Plan
@@ -180,6 +180,19 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
   - [M] ux_completeness: Collapse the console's all-failed state to one page banner, tell 'slow' from 'offline' and react to the browser offline event, pluralise 'defects marked', rank 'Likely to fail next' instead of six identical rows, and add a criterion under each badge (src/console/views/Today.jsx, src/console/ui.jsx, src/console/data.js, src/console/Login.jsx, src/console/views/Accountability.jsx, public-app/src/screens/RewardsScreen.jsx)
   - [S] accessibility: Put the hero CTAs before the figure in the DOM (order-first on the figure below lg) and add a skip link to the citizen shell (src/landing/Hero.jsx, public-app/src/App.jsx)
 
+### Iteration 4 · 2026-10-05T15:34:40.763Z
+- mean 8.3, min 7, verdict **CONTINUE**
+- url: http://localhost:4173 (landing + console), http://localhost:4175 (citizen app), http://127.0.0.1:8000 (API)
+- screens: landing, console login, console today, console scan (empty), console scan result, console hazards, console hazard detail, console accountability, console model card, console settings, console Night shift (today, hazard detail, model card), console error, loading and offline states (today, hazards), landing ledger error and loading states, citizen onboarding, citizen map, citizen my reports (empty), citizen report (photo, where, result), citizen rewards, citizen ledger, citizen error and loading states (map, my reports, ledger), motion frames (landing load at 4x CPU, 390 and 1440; worklist row rest, hover and padded focus), Lighthouse mobile: landing, login, console (signed in), citizen, README.md, assets/readme/landing.png, public/og.png, public-app/public/og.png, index.html, public-app/index.html, CHANGELOG.md
+- next fixes:
+  - [S] layout: At 390, let hazard-row meta and Today place names wrap instead of truncating ('1 re…', 'Palm Beach Road, …'), show one scan action per screen (top-bar SCAN or page SCAN A PHOTO, not both), and lift the citizen map attribution clear of the FAB (src/console/views/Hazards.jsx, src/console/views/Today.jsx, src/console/Console.jsx, public-app/src/screens/MapScreen.jsx)
+  - [M] performance: Serve the hero through srcset as 400w/720w AVIF, preloaded with imagesrcset ahead of the fonts; on the landing, load one static JetBrains Mono 400 latin file and Barlow 800 only; merge the vendor chunks so fewer than 8 scripts precede the photo (index.html, src/landing/Hero.jsx, shared/ui/MarkedPhoto.jsx, public/showcase, src/main.jsx, shared/tokens.css, vite.config.js)
+  - [S] first_impression: Make the tight 0.76 pothole the first field note and first mark drawn (sort detections by confidence), or open the hero on India_006316; record the slider's input-to-paint time (shared/data/showcase.json, src/landing/Hero.jsx, .missile/states.py)
+  - [S] ux_completeness: Stop the Hazards list showing 'Nothing here… Try another filter' while the server is down, and hide the '0 hazards' count until data arrives; replace six identical 'failing now' cells with risk and cost-if-left figures; word citizen errors for a citizen, not 'Start it with RoadGuard.bat' (src/console/views/Hazards.jsx, src/console/views/Today.jsx, src/console/views/Accountability.jsx, public-app/src/screens)
+  - [S] motion: Animate the compare handle with transform: translateX instead of `left`, and save a 4x-throttled DevTools trace of the landing load (shared/ui/MarkedPhoto.jsx, .missile/states.py)
+  - [L] shipped: Tag v4.0.1, run the full RoadGuard.bat from a fresh clone of the tag to a 200 landing page and log it; owner decision on making the repo public and a static landing deploy fed by a committed JSON snapshot (RoadGuard.bat, CHANGELOG.md, .missile/checks/fresh-clone-it4.txt)
+  - [M] code_health: Add render tests for Today/Hazards in failing, pending and offline API states and for RewardsScreen/LedgerScreen against captured API fixtures; add a RoadGuard.bat demo mode on vite preview (src/console/views, public-app/src/screens, RoadGuard.bat)
+
 <!-- iterations:end -->
 
 ## Decisions
@@ -198,4 +211,12 @@ Effort: S under 30 min, M under 2 h, L more. Each item names the rubric dimensio
 
 ## Remaining gaps
 
-(filled at Impact, or on stall)
+Impact after iteration 4 of 4 (mean 8.3: first_impression 9, design_system 9, motion 9, accessibility 9, story 9, layout 8, ux_completeness 8, code_health 8, performance 7, shipped 7). The definition of done (every dimension 9+, mean 9.5+) is not met. After the last scorecard, a polish pass (v4.0.1) fixed the Hazards list showing "try another filter" during an outage, the citizen error text that told citizens to run RoadGuard.bat, the duplicate Scan button on phones, report counts cut off in phone hazard rows, the identical "failing now" labels (failing roads now show the risk score that ranks them), and added tests for the outage state.
+
+- **shipped (7), the owner's decision:** there is no hosted URL, and the repository is private. Moving past 7 needs a public repository and a deployment: either a static landing page reading a committed snapshot of the ledger, or the full stack on a host that can run the detector (ONNX on CPU works).
+- **performance (7):** the landing's simulated mobile LCP is 3.1 to 3.2 s (score 88 to 91 between runs; the citizen app is at 2.4 s, the signed-in console at 93). Next steps, in order of expected gain: a responsive hero image (400 and 720 px, AVIF with a WebP fallback), one static JetBrains Mono file instead of the variable font, a single Barlow weight on the landing, fewer shared JS chunks, and HTTP/2 hosting.
+- **first impression (9):** the hero photo's large 0.56 ring dominates the tight 0.76 pothole; a different opening photo with one crisp, high-confidence pothole would read faster.
+- **layout and UX (8):** Night shift map credit and timeline chart labels are faint and small; the citizen map's camera button covers the map credit; Today truncates long place names on phones.
+- **code health (8):** the browser-offline and connecting states have no tests of their own; the launcher starts dev servers and has no production preview mode.
+- **model:** plan item M1's acceptance test is not met as written (see Decisions); India accuracy (0.42) is the first roadmap item.
+- **evidence:** the fresh-clone run covered `RoadGuard.bat setup` plus booting the API and building both apps from the clone (at 5fb3c22), not a full double-click launch.

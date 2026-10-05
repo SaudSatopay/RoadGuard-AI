@@ -9,7 +9,8 @@
 - Landing: keyboard and screen-reader users reach the two actions before the photo; on phones the actions sit directly under the marked photo, inside the first screen; the opening sweep settles within about 0.9 s; the plate no longer shows a second latency figure next to the stat row's.
 - Console: a server outage is one banner with quiet sections that reload themselves when it answers; "Connecting…" instead of "Server offline" while the first check is pending; a notice when the browser itself goes offline; the Today map is an overview that opens the full hazard map instead of a field of overlapping pins; the worklist skeleton matches the loaded rows (layout shift on phones 0.23 to 0.07); map pin names no longer go stale. Lighthouse accessibility is 100 on the landing, login, signed-in console and citizen app.
 - Accountability ranks roads that are already failing by risk instead of six identical rows; ward figures wrap whole on phones.
-- Citizen app: skip link; badges show what earns them.
+- Citizen app: skip link; badges show what earns them; the can't-reach-the-server message no longer tells citizens to run RoadGuard.bat.
+- Console polish: the Hazards list no longer says "try another filter" when the load failed; one Scan button on phones; report counts lead the phone hazard rows so they are not cut off; roads already failing show the risk score that ranks them; tests for the outage state.
 - Designed 1200×630 share cards for both apps; `og:image` becomes absolute when `ROADGUARD_SITE_URL` is set at build time; both `.env.example` files list the variables that actually exist.
 
 ## v4.0.0 — RoadGuard AI
